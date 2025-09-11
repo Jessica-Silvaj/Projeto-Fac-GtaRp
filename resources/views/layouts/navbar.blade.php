@@ -15,8 +15,8 @@
                     </div>
                 </div>
             </div>
-            <a href="index.html">
-                <img class="img-fluid" src="{{ asset('assets/images/logo.png') }}" alt="Theme-Logo" />
+            <a href="{{route('dashboard')}}">
+                <img class="img-fluid" src="http://127.0.0.1:8000/assets/images/mrk-dourada.png" alt="Theme-Logo" style="max-height:100px; height:auto; width:160px; margin-left: 10px"> 
             </a>
             <a class="mobile-options waves-effect waves-light">
                 <i class="ti-more"></i>

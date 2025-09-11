@@ -1,7 +1,7 @@
 @if ($message = Session::get('success'))
 <div data-growl="container" class="alert alert-success alert-dismissable growl-animated animated fadeInDown fadeOutUp background-success" role="alert" data-growl-position="top-right" style="position: fixed; margin: 0px; z-index: 999999; display: inline-block; top: 200px; right: 30px;">
     <span data-growl="icon"></span>
-    <button type="button" class="close" data-dismiss="alert" style="display: inline-block; margin-left: 10px; z-index: 999998;">
+    <button type="button" class="close" data-dismiss="alert" style="display: inline-block; margin-left: 10px; z-index: 999998;  ">
         <span aria-hidden="true">×</span>
         <span class="sr-only">Close</span>
     </button>

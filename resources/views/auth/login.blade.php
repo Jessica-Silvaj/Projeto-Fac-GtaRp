@@ -1,5 +1,9 @@
 <x-guest-layout>
     <x-auth-card>
+        <center style="color:rgba(212, 164, 72, 1);">
+            <b> SISTEMA DE CONTROLE <b/>
+        </center>
+        
         <x-slot name="logo">
             <a href="/">
                 <x-application-logo class="fill-current text-gray-500"/>
@@ -17,7 +21,7 @@
 
             <!-- Email Address -->
             <div>
-                <x-label for="matricula" :value="__('Matricula')" />
+                <x-label for="matricula" :value="__('Passaporte')" />
                 <x-input id="matricula" class="block mt-1 w-full" type="text" name="matricula" :value="old('matricula')" required autofocus />
             </div>
 
