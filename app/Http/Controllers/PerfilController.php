@@ -10,6 +10,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Str;
 
 
 class PerfilController extends Controller
@@ -53,7 +54,7 @@ class PerfilController extends Controller
 
             $banco = Usuario::find($request->id);
             $obj = [
-                'nome' => $request->nome,
+                'nome' => Str::upper($request->nome),
                 'matricula' => $request->matricula,
                 'data_admissao' => date('Y-m-d', DateTime::createFromFormat('d/m/Y', $request->data_admissao)->getTimestamp()),
                 'situacao_id' => $request->situacao_id,

@@ -3,10 +3,16 @@
     <div class="col-sm-12">
         <div class="card">
             <div class="card-header">
-                <h5>Dados do usuário</h5>
-                <button id="edit-btn" type="button" class="btn btn-sm btn-primary waves-effect waves-light f-right">
-                    <i class="ti-pencil-alt"></i>
-                </button>
+                <div class="row">
+                    <div class="col-md-10">
+                        <h3>Dados do usuário</h3>
+                    </div>
+                    <div class="col-md-2 text-right">
+                        <button id="edit-btn" type="button" class="btn btn-sm btn-primary waves-effect waves-light f-right">
+                            <i class="ti-pencil-alt"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
             <form class="form-material dadosPerfil" id="form-dadosPerfil" action="{{ route('perfil.store') }}" method="POST"
                 autocomplete="off">
@@ -60,7 +66,6 @@
                             <span class="form-bar"></span>
                             <label for="situacao_id" class="float-label">Situação</label>
                         </div>
-
                     </div>
                 </div>
                 <div class="card-footer">

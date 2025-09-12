@@ -54,7 +54,7 @@ class LoginRequest extends FormRequest
         {
             RateLimiter::hit($this->throttleKey());
             throw ValidationException::withMessages([
-                'matricula' => __('Usuário ou senha inválido!'),
+                'matricula' => __('passaporte ou senha inválida!'),
             ]);
         }
 

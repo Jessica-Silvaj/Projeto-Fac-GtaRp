@@ -6,11 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Perfil extends Model
+class BAUS extends Model
 {
     use HasFactory;
 
-    protected $table = 'PERFIL';
+    protected $table = 'BAUS';
     protected $primatyKey = 'id';
     public $timestamps = false;
 

@@ -1,7 +1,7 @@
 CREATE DATABASE projeto_fac;
 USE projeto_fac;
 
-CREATE SEQUENCE seq_perfil INCREMENT BY 1 START WITH 1;
+-- CREATE SEQUENCE seq_perfil INCREMENT BY 1 START WITH 1;
 create table if not exists PERFIL(
  id int auto_increment not null,
  nome VARCHAR(255) not null,
@@ -9,16 +9,17 @@ create table if not exists PERFIL(
  primary key (id)
 );
 
-INSERT INTO projeto_fac.perfil (id, nome, ativo) VALUES(0, 'Administrador', 1);
+INSERT INTO PERFIL (id, nome, ativo) VALUES(0, 'Administrador', 1);
 
-CREATE SEQUENCE seq_situacao INCREMENT BY 1 START WITH 1;
+-- CREATE SEQUENCE seq_situacao INCREMENT BY 1 START WITH 1;
 create table if not exists SITUACAO(
  id int auto_increment not null,
  nome VARCHAR(255) not null,
  primary key (id)
 );
 
-INSERT INTO projeto_fac.situacao (id, nome) VALUES(0, 'Ativo');
+INSERT INTO SITUACAO (id, nome) VALUES(0, 'Ativo');
+
 
 CREATE SEQUENCE seq_usuario INCREMENT BY 1 START WITH 1;
 create table if not exists USUARIOS(
@@ -34,6 +35,20 @@ create table if not exists USUARIOS(
  FOREIGN KEY (situacao_id) REFERENCES Situacao(id)
 );
 
-INSERT INTO projeto_fac.usuarios
+INSERT INTO USUARIOS
 (id, nome, senha, matricula, data_admissao, situacao_id, perfil_id)
 VALUES(0, 'jessica jesus', 'a4P8TcgI1Jzyo', 1, current_timestamp(), 1, 1);
+
+create table if not exists ITENS(
+	 id int auto_increment not null,
+	 nome VARCHAR(255) not null,
+	 ativo boolean not null default 1,
+	 primary key (id)
+);
+
+create table if not exists BAUS(
+	 id int auto_increment not null,
+	 nome VARCHAR(255) not null,
+	 ativo boolean not null default 1,
+	 primary key (id)
+);

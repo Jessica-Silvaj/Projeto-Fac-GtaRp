@@ -1761,6 +1761,18 @@ a.bg-danger:hover {
 
 .table>thead>tr>th {
     border-bottom-color: #ccc;
+    color: #d59725;
+}
+
+
+.table>tbody>tr>td {
+    color: #fff;
+    text-align: center;
+}
+
+.table>tfoot>tr>td {
+    color: #fff;
+    text-align: right;
 }
 
 .table-borderless tbody tr td,
@@ -2223,8 +2235,8 @@ img.comment-img {
 }
 
 .page-item.active .page-link {
-    background-color: #4527a0;
-    border-color: #4527a0;
+    background-color: #d59725;
+    border-color: #d59725;
 }
 
 #main {
@@ -15194,8 +15206,8 @@ table.table-bordered.dataTable tbody th:focus {
 }
 
 .page-item.active .page-link {
-    background-color: #4527a0;
-    border-color: #4527a0;
+    background-color: #d59725;
+    border-color: #d59725;
 }
 
 .page-link {
@@ -24966,6 +24978,7 @@ span.value {
 .pcoded[layout-type="dark"] .footable.table>thead>tr>td,
 .pcoded[layout-type="dark"] .footable.table>thead>tr>th {
     border-bottom: 2px solid #010609;
+    color: #000;
 }
 
 .pcoded[layout-type="dark"] .c3-tooltip td,

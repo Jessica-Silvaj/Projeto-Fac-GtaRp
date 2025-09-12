@@ -5,8 +5,8 @@
         <ul class="pcoded-item pcoded-left-item">
             <li class="pcoded-hasmenu">
                 <a href="javascript:void(0)" class="waves-effect waves-dark">
-                    <span class="pcoded-micon"><i class="ti-layout-grid2-alt"></i><b>BC</b></span>
-                    <span class="pcoded-mtext">Cadastros</span>
+                    <span class="pcoded-micon"><i class="ti-user"></i><b>RH</b></span>
+                    <span class="pcoded-mtext">Recursos Humanos</span>
                     <span class="pcoded-mcaret"></span>
                 </a>
                 <ul class="pcoded-submenu">
@@ -17,9 +17,87 @@
                             <span class="pcoded-mcaret"></span>
                         </a>
                     </li>
+
+                    <li class=" ">
+                        <a href="breadcrumb.html" class="waves-effect waves-dark">
+                            <span class="pcoded-micon"><i class="ti-angle-right"></i></span>
+                            <span class="pcoded-mtext">Perfil</span>
+                            <span class="pcoded-mcaret"></span>
+                        </a>
+                    </li>
+
+                    <li class=" ">
+                        <a href="breadcrumb.html" class="waves-effect waves-dark">
+                            <span class="pcoded-micon"><i class="ti-angle-right"></i></span>
+                            <span class="pcoded-mtext">Situação</span>
+                            <span class="pcoded-mcaret"></span>
+                        </a>
+                    </li>
+
+                </ul>
+            </li>
+
+            <li class="pcoded-hasmenu">
+                <a href="javascript:void(0)" class="waves-effect waves-dark">
+                    <span class="pcoded-micon"><i class="ti-settings"></i><b>SI</b></span>
+                    <span class="pcoded-mtext">Sistema</span>
+                    <span class="pcoded-mcaret"></span>
+                </a>
+                <ul class="pcoded-submenu">
+                    <li class=" ">
+                        <a href="breadcrumb.html" class="waves-effect waves-dark">
+                            <span class="pcoded-micon"><i class="ti-angle-right"></i></span>
+                            <span class="pcoded-mtext">Funções</span>
+                            <span class="pcoded-mcaret"></span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            <li class="pcoded-hasmenu {{ request()->routeIs('administracao.estoque.*') ? 'active pcoded-trigger' : '' }}">
+                <a href="javascript:void(0)" class="waves-effect waves-dark">
+                    <span class="pcoded-micon"><i class="ti-package"></i><b>ES</b></span>
+                    <span class="pcoded-mtext">Estoque</span>
+                    <span class="pcoded-mcaret"></span>
+                </a>
+                <ul class="pcoded-submenu">
+                    <li class="{{ request()->routeIs('dashboard') ? 'active' : '' }} ">
+                        <a href="{{route('administracao.estoque.itens.index')}}" class="waves-effect waves-dark">
+                            <span class="pcoded-micon"><i class="ti-angle-right"></i></span>
+                            <span class="pcoded-mtext">Itens</span>
+                            <span class="pcoded-mcaret"></span>
+                        </a>
+                    </li>
+
+                    <li class=" ">
+                        <a href="breadcrumb.html" class="waves-effect waves-dark">
+                            <span class="pcoded-micon"><i class="ti-angle-right"></i></span>
+                            <span class="pcoded-mtext">Baús</span>
+                            <span class="pcoded-mcaret"></span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            <li class="pcoded-hasmenu">
+                <a href="javascript:void(0)" class="waves-effect waves-dark">
+                    <span class="pcoded-micon"><i class="ti-truck"></i><b>FB</b></span>
+                    <span class="pcoded-mtext">Fabricação</span>
+                    <span class="pcoded-mcaret"></span>
+                </a>
+                <ul class="pcoded-submenu">
+                    <li class=" ">
+                        <a href="breadcrumb.html" class="waves-effect waves-dark">
+                            <span class="pcoded-micon"><i class="ti-angle-right"></i></span>
+                            <span class="pcoded-mtext">Produto</span>
+                            <span class="pcoded-mcaret"></span>
+                        </a>
+                    </li>
+
                 </ul>
             </li>
         </ul>
+
 
         <div class="pcoded-navigation-label">Navegação</div>
         <ul class="pcoded-item pcoded-left-item">
