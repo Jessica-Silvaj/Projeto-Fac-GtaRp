@@ -83,7 +83,7 @@
                     </a>
                     <ul class="show-notification profile-notification">
                         <li class="waves-effect waves-light">
-                            <a href="{{ route('usuario.index', Session::get('matricula')) }}">
+                            <a href="{{ route('perfil.edit', Session::get('matricula')) }}">
                                 <i class="ti-user"></i> Perfil
                             </a>
                         </li>

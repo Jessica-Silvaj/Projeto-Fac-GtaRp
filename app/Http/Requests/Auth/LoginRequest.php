@@ -59,7 +59,7 @@ class LoginRequest extends FormRequest
         }
 
         //TODO CRIAR REGRA PARA PERFIL NÃO TER ACESSO AO SISTEMA
-        if($usuario->perfil_id == 5){
+        if($usuario->perfil_id == NULL){
             throw ValidationException::withMessages([
                 'matricula' => __('O perfil do usuário não permite acessar o sistema!'),
             ]);

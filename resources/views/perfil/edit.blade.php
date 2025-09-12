@@ -8,7 +8,7 @@
                     <i class="ti-pencil-alt"></i>
                 </button>
             </div>
-            <form class="form-material dadosPerfil" id="form-dadosPerfil" action="{{ route('usuario.store') }}" method="POST"
+            <form class="form-material dadosPerfil" id="form-dadosPerfil" action="{{ route('perfil.store') }}" method="POST"
                 autocomplete="off">
                 <div class="card-block">
                     <div class="row justify-content-center">
@@ -66,10 +66,10 @@
                 <div class="card-footer">
                     <div class="row justify-content-center">
                         <div class="form-group col-sm-12 text-center">
-                            <button onclick="submeterFormularioPerfil()" id="save-btn" class="btn btn-primary btn-out-dashed waves-effect waves-light"><i
+                            <button type="submit" id="save-btn" class="btn btn-primary btn-out-dashed waves-effect waves-light"><i
                                     class="ti-save"></i>Salvar</button>
                             <a id="cancel-btn" class="btn btn-danger btn-out-dashed waves-effect waves-light"
-                                href="{{ route('usuario.index', $usuario->id) }}"><i class="ti-close"></i></i>Cancelar</a>
+                                href="{{ route('perfil.edit', $usuario->id) }}"><i class="ti-close"></i></i>Cancelar</a>
                         </div>
                     </div>
                 </div>
@@ -113,11 +113,6 @@
                 $('#save-btn, #cancel-btn').show();
             }
 
-            function submeterFormularioPerfil() {
-                var formularioPerfil = document.getElementById("form-dadosPerfil");
-                formularioPerfil.submit();
-            }
-
             const rules = {
                 nome: {
                     required: true,
@@ -155,7 +150,7 @@
                 },
             };
 
-            const form = $("form.dadosPerfil");
+            const form = $("#form-dadosPerfil");
             validarFormulario(form, rules, messages);
 
         });

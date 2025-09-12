@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\UsuarioController;
+use App\Http\Controllers\PerfilController;
 use App\Http\Middleware\CheckAuth;
 
 /*
@@ -26,9 +26,9 @@ Route::middleware(CheckAuth::class)->group(function () {
     // DASBHOARD
     Route::get("/dashboard", [DashboardController::class,'index'])->name('dashboard');
     // Perfil
-    Route::get("/usuario/{id}", [UsuarioController::class,'index'])->name('usuario.index');
-    Route::post("/usuario", [UsuarioController::class,'store'])->name('usuario.store');
-    Route::post("/usuario/alterarSenha", [UsuarioController::class,'alterarSenha'])->name('usuario.alterarSenha');
+    Route::get("/perfil/usuario/{id}", [PerfilController::class,'edit'])->name('perfil.edit');
+    Route::post("/perfil/usuario", [PerfilController::class,'store'])->name('perfil.store');
+    Route::post("/perfil/usuario/alterarSenha", [PerfilController::class,'alterarSenha'])->name('usuario.alterarSenha');
 });
 
 require __DIR__.'/auth.php';

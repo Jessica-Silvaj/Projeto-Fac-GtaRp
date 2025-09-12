@@ -12,9 +12,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 
 
-class UsuarioController extends Controller
+class PerfilController extends Controller
 {
-    public static function index($id)
+    public static function edit($id)
     {
         $usuario = Usuario::find($id);
         $perfil = Perfil::obterTodos();
@@ -23,7 +23,7 @@ class UsuarioController extends Controller
 
         if ($usuario) {
             if (in_array($usuario->perfil_id, $permissao) || $usuario->matricula == Session::get('matricula')) {
-                return view('usuario.index', compact('usuario', 'perfil', 'situacao'));
+                return view('perfil.edit', compact('usuario', 'perfil', 'situacao'));
             } else {
                 return redirect()->back()->with('error', 'Você não tem acesso a esse usuário.');
             }
@@ -44,7 +44,7 @@ class UsuarioController extends Controller
 
             $matriculaExistente = Usuario::obterPorMatricula($request->matricula);
             if(!empty($matriculaExistente) && Session::get('matricula') != $request->matricula){
-                return redirect()->back()->with('error', 'Essa matrícula esta sendo utilizada.');
+                return redirect()->back()->with('error', 'Esse passaporte já está sendo utilizado(a).');
             }
 
             if ($request->senha) {
@@ -62,10 +62,10 @@ class UsuarioController extends Controller
 
             $banco->update($obj);
             DB::commit();
-            return redirect()->back()->with('success', 'O usuário foi atualizado com sucesso.');
+            return redirect()->back()->with('success', 'O perfil do usuário foi atualizado com sucesso.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'Ocorreu um error ao atualizar o usuário' . $e->getMessage());
+            return redirect()->back()->with('error', 'Ocorreu um error ao atualizar o perfil do usuário' . $e->getMessage());
         }
     }
 
