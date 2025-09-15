@@ -11,6 +11,8 @@
 <script type="text/javascript" src="{{ asset('assets/js/jquery.mask/jquery.mask.js') }}"></script>
 <script src="{{ asset('assets/js/mc-calendar/mc-calendar.min.js') }}"></script>
 <script type="text/javascript" src="{{ asset('assets/js/jquery-validate/jquery.validate.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 
 
 @yield('script')

@@ -6,20 +6,28 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Situacao extends Model
+class Funcao extends Model
 {
     use HasFactory;
 
-    protected $table = 'SITUACAO';
+    protected $table = 'FUNCAO';
     protected $primatyKey = 'id';
-    protected static $sequence = "seq_SITUACAO";
+    public static $sequence = 'seq_FUNCAO';
     public $timestamps = false;
 
     protected $fillable =
     [
         'id',
-        'nome'
+        'nome',
+        'ativo'
     ];
+
+    public function usuarios()
+    {
+        return $this->belongsToMany(Usuario::class, 'USUARIO_FUNCAO', 'funcao_id', 'usuario_id')
+            ->using(UsuarioFuncao::class)
+            ->withPivot('data_atribuicao');
+    }
 
     public static function obterTodos()
     {

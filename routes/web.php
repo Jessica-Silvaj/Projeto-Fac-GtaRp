@@ -35,6 +35,9 @@ Route::middleware(CheckAuth::class)->group(function () {
         //  -- ESTOQUE
              //  --- Itens
     Route::get("/administracao/estoque/itens/index", [ItensController::class,'index'])->name('administracao.estoque.itens.index');
+    Route::get("/administracao/estoque/itens/edit/{id?}", [ItensController::class,'edit'])->name('administracao.estoque.itens.edit');
+    Route::delete('/administracao/estoque/itens/delete/{id}', [ItensController::class,'destroy'])->name('administracao.estoque.itens.destroy');
+    Route::post("/administracao/estoque/itens/store", [ItensController::class,'store'])->name('administracao.estoque.itens.store');
 
 });
 

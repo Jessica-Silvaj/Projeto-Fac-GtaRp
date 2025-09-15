@@ -52,7 +52,7 @@
                     </div>
                     <div class="col-md-2 text-right">
                         <a id="cancel-btn" class="btn btn-primary btn-out-dashed waves-effect waves-light"
-                            href="{{ route('administracao.estoque.itens.index') }}">
+                            href="{{ route('administracao.estoque.itens.edit') }}">
                             <i class="ti-plus"></i> Novo
                         </a>
                     </div>
@@ -69,7 +69,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse ($listItens as $idx )
+                            @forelse ($listItens as $idx)
                                 <tr>
                                     <td class="text-left col-md-">{{ $idx->nome }}</td>
                                     <td class="text-center col-md-5">
@@ -82,14 +82,22 @@
                                     <td class="text-center col-md-2">
                                         <div class="row">
                                             <div class="col-md-5 text-center">
-                                                <button type="button" class="btn btn-primary" title="Editar Itens" href="">
+                                                <a type="button" class="btn btn-primary" title="Editar Itens"
+                                                    href="{{ route('administracao.estoque.itens.edit', [$idx->id]) }}">
                                                     <i class="ti-pencil"></i>Editar
-                                                </button>
+                                                </a>
                                             </div>
                                             <div class="col-md-5 text-center">
-                                                <button type="button" class="btn btn-danger" title="Excluir Itens" href="">
+                                                <a type="button" class="btn btn-danger" title="Excluir Item"
+                                                    onclick="mostrarConfirmacaoExclusao('Excluir Item', 'Deseja realmente excluir o item {{ "\"" . $idx->nome . "\"" }}?', 'Excluir', 'Cancelar', {{ $idx->id }})">
                                                     <i class="ti-trash"></i> Excluir
-                                                </button>
+                                                </a>
+                                                <form id="{{ $idx->id }}"
+                                                    action="{{ route('administracao.estoque.itens.destroy', [$idx->id]) }}"
+                                                    method="POST">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                </form>
                                             </div>
                                         </div>
                                     </td>
@@ -117,4 +125,36 @@
     </div>
 @endsection
 @section('script')
+    <script>
+        function mostrarConfirmacaoExclusao(titulo, texto, btn1, btn2, valor) {
+            const swalWithBootstrapButtons = Swal.mixin({
+                customClass: {
+                    confirmButton: 'btn btn-success me-2',
+                    cancelButton: 'btn btn-danger'
+                },
+                buttonStyling: false
+            })
+
+            Swal.fire({
+                title: titulo,
+                text: texto,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButton: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: btn1,
+                cancelButtonText: btn2,
+                reverseButtons: true,
+                customClass: {
+                    confirmButton: 'btn btn-success',
+                    cancelButton: 'btn btn-danger'
+                },
+                buttonStyling: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $('#' + valor).submit();
+                }
+            })
+        }
+    </script>
 @endsection

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\LogCadastro;
+use App\Models\LogExcecao;
 use App\Models\Perfil;
 use App\Models\Situacao;
 use App\Models\Usuario;
@@ -44,7 +46,7 @@ class PerfilController extends Controller
             }
 
             $matriculaExistente = Usuario::obterPorMatricula($request->matricula);
-            if(!empty($matriculaExistente) && Session::get('matricula') != $request->matricula){
+            if (!empty($matriculaExistente) && Session::get('matricula') != $request->matricula) {
                 return redirect()->back()->with('error', 'Esse passaporte já está sendo utilizado(a).');
             }
 
@@ -62,10 +64,12 @@ class PerfilController extends Controller
             ];
 
             $banco->update($obj);
+            LogCadastro::inserir("PERFIL", "ATUALIZAR", "NOME: " . $banco->nome . ", Atualizando", $banco->id);
             DB::commit();
             return redirect()->back()->with('success', 'O perfil do usuário foi atualizado com sucesso.');
         } catch (\Exception $e) {
             DB::rollBack();
+            LogExcecao::inserirExcessao($e);
             return redirect()->back()->with('error', 'Ocorreu um error ao atualizar o perfil do usuário' . $e->getMessage());
         }
     }

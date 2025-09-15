@@ -5,19 +5,26 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Hash;
 
 class Usuario extends Model
 {
     use  HasFactory;
 
-    protected $table = 'usuarios';
+    protected $table = 'USUARIOS';
     protected $primatyKey = 'id';
-    protected static $sequence = "seq_usuario";
+    protected static $sequence = "seq_USUARIOS";
     public $timestamps = false;
 
     protected $fillable =
     [
-        'id','nome', 'senha', 'matricula', 'data_admissao','situacao_id', 'perfil_id'
+        'id',
+        'nome',
+        'senha',
+        'matricula',
+        'data_admissao',
+        'situacao_id',
+        'perfil_id'
     ];
 
     public function perfil()
@@ -30,24 +37,37 @@ class Usuario extends Model
         return $this->belongsTo(Situacao::class, 'situacao_id', 'id');
     }
 
+    public function funcoes()
+    {
+        return $this->belongsToMany(Funcao::class, 'USUARIO_FUNCAO', 'usuario_id', 'funcao_id')
+            ->using(UsuarioFuncao::class)
+            ->withPivot('data_atribuicao');
+    }
 
     public static function realizarLogin($obj)
     {
-        // dd(crypt($obj['senha'], 'a45zzzz2s'));
-        $usuario = self::where("matricula",$obj['matricula'])->first();
-        if($usuario && $usuario->senha == crypt($obj['senha'], 'a45zzzz2s')){
-            //TODO CRIAR VALIDAÇÃO DE PERFIL VAZIOS
-            if(empty($usuario->perfil_id)){
+        // dd(Hash::make($obj['senha']));
+        $usuario = self::where("matricula", $obj['matricula'] ?? null)->first();
 
-            }
-            return $usuario;
+        if (!$usuario) {
+            return null;
         }
 
-        return null;
+        if (!Hash::check($obj['senha'] ?? '', $usuario->senha)) {
+            return null;
+        }
+
+        // Rehash se necessário (migração transparente de hash mais antigo)
+        if (Hash::needsRehash($usuario->senha)) {
+            $usuario->senha = Hash::make($obj['senha']);
+            $usuario->save();
+        }
+
+        return $usuario;
     }
 
-    public static function obterPorMatricula($matricula){
-       return self::where('matricula', $matricula)->first();
+    public static function obterPorMatricula($matricula)
+    {
+        return self::where('matricula', $matricula)->first();
     }
-
 }

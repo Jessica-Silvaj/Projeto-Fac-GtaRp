@@ -7,6 +7,7 @@ use Illuminate\Auth\Events\Lockout;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -32,8 +33,20 @@ class LoginRequest extends FormRequest
     public function rules()
     {
         return [
-            'matricula' => 'required',
-            'senha' => 'required|string',
+            'matricula' => ['required', 'string', 'regex:/^\d{3,20}$/'],
+            'senha' =>  ['required', 'string', 'min:6', 'max:128'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'matricula.required' => 'Informe seu, passaporte',
+            'matricula.max'      => 'A identificação deve ter no máximo :max caracteres.',
+            'matricula.regex'    => 'Use um passaporte numérico (3–20 dígitos) válido.',
+            'senha.required'     => 'Informe sua senha.',
+            'senha.min'          => 'A senha deve ter pelo menos :min caracteres.',
+            'senha.max'          => 'A senha deve ter no máximo :max caracteres.',
         ];
     }
 
@@ -48,26 +61,29 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        $obj = $this->only('matricula', 'senha');
-        $usuario = Usuario::realizarLogin($obj);
-        if(empty($usuario))
-        {
-            RateLimiter::hit($this->throttleKey());
+        $cred = $this->only('matricula', 'senha');
+
+        // Login via método seguro no Model (Hash::check, sem concatenação)
+        $usuario = Usuario::realizarLogin($cred);
+
+        if (empty($usuario)) {
+            RateLimiter::hit($this->throttleKey(), 60);
             throw ValidationException::withMessages([
-                'matricula' => __('passaporte ou senha inválida!'),
+                'matricula' => __('Passaporte ou senha inválida!'),
             ]);
         }
 
-        //TODO CRIAR REGRA PARA PERFIL NÃO TER ACESSO AO SISTEMA
-        if($usuario->perfil_id == NULL){
+        // Regras de acesso: sem perfil OU perfil 9 => bloqueia
+        if (is_null($usuario->perfil_id) || (int)$usuario->perfil_id === 9) {
+            RateLimiter::hit($this->throttleKey(), 60);
             throw ValidationException::withMessages([
                 'matricula' => __('O perfil do usuário não permite acessar o sistema!'),
             ]);
         }
 
-        Session::put('matricula', $usuario->matricula);
-        Session::put('nome', $usuario->nome);
-        Session::put('perfil', $usuario->perfil_id);
+        // Regenera a sessão (mitiga fixation); sessão é setada no controller
+        $this->session()->regenerate();
+
         RateLimiter::clear($this->throttleKey());
     }
 
@@ -87,12 +103,8 @@ class LoginRequest extends FormRequest
         event(new Lockout($this));
 
         $seconds = RateLimiter::availableIn($this->throttleKey());
-
         throw ValidationException::withMessages([
-            'matricula' => trans('auth.throttle', [
-                'seconds' => $seconds,
-                'minutes' => ceil($seconds / 60),
-            ]),
+            'matricula' => "Muitas tentativas. Aguarde {$seconds}s e tente novamente.",
         ]);
     }
 
@@ -103,6 +115,6 @@ class LoginRequest extends FormRequest
      */
     public function throttleKey()
     {
-        return Str::lower($this->input('matricula')).'|'.$this->ip();
+        return Str::lower($this->input('matricula')) . '|' . $this->ip();
     }
 }

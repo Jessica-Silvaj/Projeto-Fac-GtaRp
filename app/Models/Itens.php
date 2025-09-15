@@ -13,25 +13,28 @@ class ITENS extends Model
 
     protected $table = 'ITENS';
     protected $primatyKey = 'id';
+    public static $sequence = 'seq_ITENS';
     public $timestamps = false;
 
     protected $fillable =
     [
-        'id','nome', 'ativo'
+        'id',
+        'nome',
+        'ativo'
     ];
 
     public static function obterTodos()
     {
         return self::orderBy('nome')
-        ->get();
+            ->get();
     }
 
     public static function obterPorFiltros($request)
     {
         $query = self::orderBy('nome');
 
-        if(!empty($request->nome)) {
-            $query = $query->where('nome', 'LIKE', '%'.Str::upper($request->nome).'%');
+        if (!empty($request->nome)) {
+            $query = $query->where('nome', 'LIKE', '%' . Str::upper($request->nome) . '%');
         }
 
         if ($request->filled('ativo')) {
