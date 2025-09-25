@@ -8,15 +8,18 @@
                 <div class="header-search">
                     <div class="main-search morphsearch-search">
                         <div class="input-group">
-                            <span class="input-group-prepend search-close"><i class="ti-close input-group-text"></i></span>
+                            <span class="input-group-prepend search-close"><i
+                                    class="ti-close input-group-text"></i></span>
                             <input type="text" class="form-control" placeholder="Enter Keyword">
-                            <span class="input-group-append search-btn"><i class="ti-search input-group-text"></i></span>
+                            <span class="input-group-append search-btn"><i
+                                    class="ti-search input-group-text"></i></span>
                         </div>
                     </div>
                 </div>
             </div>
-            <a href="{{route('dashboard')}}">
-                <img class="img-fluid" src="http://127.0.0.1:8000/assets/images/mrk-dourada.png" alt="Theme-Logo" style="max-height:100px; height:auto; width:160px; margin-left: 10px"> 
+            <a href="{{ route('dashboard') }}">
+                <img class="img-fluid" src="http://127.0.0.1:8000/assets/images/mrk-dourada.png" alt="Theme-Logo"
+                    style="max-height:100px; height:auto; width:160px; margin-left: 10px">
             </a>
             <a class="mobile-options waves-effect waves-light">
                 <i class="ti-more"></i>
@@ -82,11 +85,11 @@
                         <i class="ti-angle-down"></i>
                     </a>
                     <ul class="show-notification profile-notification">
-                        <li class="waves-effect waves-light">
+                        {{-- <li class="waves-effect waves-light">
                             <a href="{{ route('perfil.edit', Session::get('matricula')) }}">
                                 <i class="ti-user"></i> Perfil
                             </a>
-                        </li>
+                        </li> --}}
                         <li class="waves-effect waves-light">
                             <a href="#" data-toggle="modal" data-target="#alteracao-senha">
                                 <i class="fas fa-key"></i> Alterar Senha

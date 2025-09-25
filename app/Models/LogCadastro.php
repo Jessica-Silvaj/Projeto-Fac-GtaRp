@@ -19,7 +19,6 @@ class LogCadastro extends Model
 
     protected $fillable =
     [
-        'id',
         'tipo',
         'acao',
         'texto',

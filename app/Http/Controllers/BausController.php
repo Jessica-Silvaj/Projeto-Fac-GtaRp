@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Itens;
+use App\Models\Baus;
 use App\Models\LogCadastro;
 use App\Models\LogExcecao;
 use App\Utils;
@@ -14,24 +14,24 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 
 
-class ItensController extends Controller
+class BausController extends Controller
 {
     public function index(Request $request)
     {
         $request->all();
-        $listItens = Itens::obterPorFiltros($request);
-        $listItens = Utils::arrayPaginator($listItens, route('administracao.estoque.itens.index'), $request, 10);
-        return view('administracao.estoque.itens.index', compact('listItens'));
+        $listBaus = Baus::obterPorFiltros($request);
+        $listBaus = Utils::arrayPaginator($listBaus, route('administracao.estoque.baus.index'), $request, 10);
+        return view('administracao.estoque.baus.index', compact('listBaus'));
     }
 
     public function edit($id = 0)
     {
         if (empty($id)) {
-            $itens = new Itens();
+            $baus = new Baus();
         } else {
-            $itens = Itens::find($id);
+            $baus = Baus::find($id);
         }
-        return view('administracao.estoque.itens.edit', compact('itens'));
+        return view('administracao.estoque.baus.edit', compact('baus'));
     }
 
     public function store(Request $request)
@@ -40,26 +40,26 @@ class ItensController extends Controller
             $request->all();
             DB::beginTransaction();
             if (empty($request->id)) {
-                $itens = Itens::create([
-                    'id' => Utils::getSequence(Itens::$sequence),
+                $baus = Baus::create([
+                    'id' => Utils::getSequence(Baus::$sequence),
                     'nome' => Str::upper($request->nome),
                     'ativo' => $request->ativo,
                 ]);
-                LogCadastro::inserir("ITEM", "INSERIR", "NOME: " . $itens->nome . ", Inserindo", $itens->id);
+                LogCadastro::inserir("BAUS", "INSERIR", "NOME: " . $baus->nome . ", Inserindo", $baus->id);
             } else {
-                $itens = Itens::find($request->id);
-                $itens->update([
+                $baus = Baus::find($request->id);
+                $baus->update([
                     'nome' => Str::upper($request->nome),
                     'ativo' => $request->ativo,
                 ]);
-                LogCadastro::inserir("ITEM", "ATUALIZAR", "NOME: " . $itens->nome . ", Atualizando", $itens->id);
+                LogCadastro::inserir("BAUS", "ATUALIZAR", "NOME: " . $baus->nome . ", Atualizando", $baus->id);
             }
             DB::commit();
-            return redirect()->route('administracao.estoque.itens.index')->with('success', 'O item do foi salvo com sucesso.');
+            return redirect()->route('administracao.estoque.baus.index')->with('success', 'O baú foi salvo com sucesso.');
         } catch (\Exception $e) {
             DB::rollback();
             LogExcecao::inserirExcessao($e);
-            return redirect()->back()->with('error', 'Ocorreu um erro ao salvar o item');
+            return redirect()->back()->with('error', 'Ocorreu um erro ao salvar o Baú');
         }
     }
 
@@ -67,14 +67,14 @@ class ItensController extends Controller
     {
         try {
             DB::beginTransaction();
-            $banco = Itens::find($id);
+            $banco = baus::find($id);
             $banco->delete();
             DB::commit();
-            return redirect()->back()->with('success', 'O item do foi excluído com sucesso.');
+            return redirect()->back()->with('success', 'O baú foi excluído com sucesso.');
         } catch (\Exception $e) {
             DB::rollback();
             LogExcecao::inserirExcessao($e);
-            return redirect()->back()->with('error', 'Ocorreu um erro ao exluir o item');
+            return redirect()->back()->with('error', 'Ocorreu um erro ao exluir o baú');
         }
     }
 }

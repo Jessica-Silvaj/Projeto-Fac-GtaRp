@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Itens;
 use App\Models\LogCadastro;
 use App\Models\LogExcecao;
+use App\Models\Situacao;
 use App\Utils;
 use DateTime;
 use Exception;
@@ -14,24 +14,24 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 
 
-class ItensController extends Controller
+class UsuarioController extends Controller
 {
     public function index(Request $request)
     {
         $request->all();
-        $listItens = Itens::obterPorFiltros($request);
-        $listItens = Utils::arrayPaginator($listItens, route('administracao.estoque.itens.index'), $request, 10);
-        return view('administracao.estoque.itens.index', compact('listItens'));
+        $listSituacao = Situacao::obterPorFiltros($request);
+        $listSituacao = Utils::arrayPaginator($listSituacao, route('administracao.rh.situacao.index'), $request, 10);
+        return view('administracao.rh.situacao.index', compact('listSituacao'));
     }
 
     public function edit($id = 0)
     {
         if (empty($id)) {
-            $itens = new Itens();
+            $situacao = new Situacao();
         } else {
-            $itens = Itens::find($id);
+            $situacao = Situacao::find($id);
         }
-        return view('administracao.estoque.itens.edit', compact('itens'));
+        return view('administracao.rh.situacao.edit', compact('situacao'));
     }
 
     public function store(Request $request)
@@ -40,22 +40,22 @@ class ItensController extends Controller
             $request->all();
             DB::beginTransaction();
             if (empty($request->id)) {
-                $itens = Itens::create([
-                    'id' => Utils::getSequence(Itens::$sequence),
+                $situacao = Situacao::create([
+                    'id' => Utils::getSequence(Situacao::$sequence),
                     'nome' => Str::upper($request->nome),
                     'ativo' => $request->ativo,
                 ]);
-                LogCadastro::inserir("ITEM", "INSERIR", "NOME: " . $itens->nome . ", Inserindo", $itens->id);
+                LogCadastro::inserir("SITUAÇÃO", "INSERIR", "NOME: " . $situacao->nome . ", Inserindo", $situacao->id);
             } else {
-                $itens = Itens::find($request->id);
-                $itens->update([
+                $situacao = Situacao::find($request->id);
+                $situacao->update([
                     'nome' => Str::upper($request->nome),
                     'ativo' => $request->ativo,
                 ]);
-                LogCadastro::inserir("ITEM", "ATUALIZAR", "NOME: " . $itens->nome . ", Atualizando", $itens->id);
+                LogCadastro::inserir("SITUAÇÃO", "ATUALIZAR", "NOME: " . $situacao->nome . ", Atualizando", $situacao->id);
             }
             DB::commit();
-            return redirect()->route('administracao.estoque.itens.index')->with('success', 'O item do foi salvo com sucesso.');
+            return redirect()->route('administracao.rh.situacao.index')->with('success', 'A situação foi salva com sucesso.');
         } catch (\Exception $e) {
             DB::rollback();
             LogExcecao::inserirExcessao($e);
@@ -67,14 +67,14 @@ class ItensController extends Controller
     {
         try {
             DB::beginTransaction();
-            $banco = Itens::find($id);
+            $banco = Situacao::find($id);
             $banco->delete();
             DB::commit();
-            return redirect()->back()->with('success', 'O item do foi excluído com sucesso.');
+            return redirect()->back()->with('success', 'A situação do foi excluído com sucesso.');
         } catch (\Exception $e) {
             DB::rollback();
             LogExcecao::inserirExcessao($e);
-            return redirect()->back()->with('error', 'Ocorreu um erro ao exluir o item');
+            return redirect()->back()->with('error', 'Ocorreu um erro ao exluir a situação');
         }
     }
 }

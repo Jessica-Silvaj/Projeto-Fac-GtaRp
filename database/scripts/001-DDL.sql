@@ -23,12 +23,13 @@ CREATE SEQUENCE seq_SITUACAO INCREMENT BY 1 START WITH 1;
 create table if not exists SITUACAO(
  id int auto_increment not null,
  nome VARCHAR(255) not null,
+ ativo TINYINT(1) DEFAULT 1,
  primary key (id)
 );
 
-INSERT INTO SITUACAO (id, nome) VALUES(1, 'Ativo');
-INSERT INTO SITUACAO (id, nome) VALUES(2, 'Inativo');
-INSERT INTO SITUACAO (id, nome) VALUES(3, 'Ausente');
+INSERT INTO SITUACAO (id, nome, ativo) VALUES(1, 'Ativo',1);
+INSERT INTO SITUACAO (id, nome, ativo) VALUES(2, 'Inativo',1);
+INSERT INTO SITUACAO (id, nome, ativo) VALUES(3, 'Ausente',1);
 
 
 CREATE SEQUENCE seq_USUARIOS INCREMENT BY 1 START WITH 1;
@@ -47,7 +48,7 @@ create table if not exists USUARIOS(
 
 INSERT INTO USUARIOS
 (id, nome, senha, matricula, data_admissao, situacao_id, perfil_id)
-VALUES(0, 'jessica jesus', 'a4P8TcgI1Jzyo', 1, current_timestamp(), 1, 7);
+VALUES(0, 'jessica jesus', '$2y$12$DMoyuFQMaRTIScn.mBYipet42Jv5flAfME2XZBrZL3HxTu2jdAq2y', 1, current_timestamp(), 1, 7);
 
 CREATE SEQUENCE seq_ITENS INCREMENT BY 1 START WITH 1;
 create table if not exists ITENS(
@@ -81,9 +82,11 @@ CREATE SEQUENCE seq_LOGEXCECAO INCREMENT BY 1 START WITH 1;
 CREATE TABLE LOGEXCECAO (
     id INT AUTO_INCREMENT PRIMARY KEY,
     excecao VARCHAR(255) NOT NULL,
-    usuario_id INT NOT NULL,
+    usuario_id INT NULL,
     CONSTRAINT fk_logexcecao_usuario FOREIGN KEY (usuario_id) REFERENCES USUARIOS(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+ALTER TABLE LOGEXCECAO MODIFY excecao MEDIUMTEXT NOT NULL;
 
 CREATE SEQUENCE seq_FUNCAO INCREMENT BY 1 START WITH 1;
 CREATE TABLE IF NOT EXISTS FUNCAO (
@@ -112,4 +115,12 @@ CREATE TABLE IF NOT EXISTS USUARIO_FUNCAO (
     PRIMARY KEY (usuario_id, funcao_id),
     FOREIGN KEY (usuario_id) REFERENCES USUARIOS(id) ON DELETE CASCADE,
     FOREIGN KEY (funcao_id) REFERENCES FUNCAO(id) ON DELETE CASCADE
+);
+
+CREATE SEQUENCE seq_PERMISSAO INCREMENT BY 1 START WITH 1;
+CREATE TABLE IF NOT EXISTS PERMISSAO (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(150) NOT NULL,             -- Nome interno (ex.: estoque_editar)
+    descricao VARCHAR(255) NOT NULL,        -- Descrição legível (ex.: Editar Estoque)
+    ativo TINYINT(1) DEFAULT 1             -- Permissão ativa (1) ou desativada (0)
 );

@@ -19,15 +19,15 @@ class LogExcecao extends Model
 
     protected $fillable =
     [
-        'id',
         'excecao',
-        'usuario_id ',
+        'usuario_id',
     ];
 
     public static function inserirExcessao($excecao)
     {
-        $usuario_id = empty(Session::get('usuario_id')) ? null : Session::get('usuario_id');
-        self::create([
+        $usuario_id = Session::get('usuario_id') ?: null;
+
+        return self::create([
             'id' => Utils::getSequence(self::$sequence),
             'excecao' => $excecao,
             'usuario_id' => $usuario_id,

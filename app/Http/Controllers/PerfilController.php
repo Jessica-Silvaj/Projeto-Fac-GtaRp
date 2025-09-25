@@ -11,6 +11,7 @@ use DateTime;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 
@@ -22,10 +23,8 @@ class PerfilController extends Controller
         $usuario = Usuario::find($id);
         $perfil = Perfil::obterTodos();
         $situacao = Situacao::obterTodos();
-        $permissao = [1];
-
         if ($usuario) {
-            if (in_array($usuario->perfil_id, $permissao) || $usuario->matricula == Session::get('matricula')) {
+            if ($usuario->matricula == Session::get('matricula')) {
                 return view('perfil.edit', compact('usuario', 'perfil', 'situacao'));
             } else {
                 return redirect()->back()->with('error', 'Você não tem acesso a esse usuário.');
@@ -51,7 +50,7 @@ class PerfilController extends Controller
             }
 
             if ($request->senha) {
-                $obj['senha'] = crypt($request->senha, 'a45zzzz2s');
+                $obj['senha'] = Hash::make($request->senha);
             }
 
             $banco = Usuario::find($request->id);
