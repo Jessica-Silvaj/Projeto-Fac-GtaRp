@@ -51,10 +51,12 @@
                         <h3>Listagem de Itens</h3>
                     </div>
                     <div class="col-md-2 text-right">
-                        <a id="cancel-btn" class="btn btn-primary btn-out-dashed waves-effect waves-light"
-                            href="{{ route('administracao.estoque.itens.edit') }}">
-                            <i class="ti-plus"></i> Novo
-                        </a>
+                        @can('acesso', 'administracao.estoque.itens.store')
+                            <a id="cancel-btn" class="btn btn-primary btn-out-dashed waves-effect waves-light"
+                                href="{{ route('administracao.estoque.itens.edit') }}">
+                                <i class="ti-plus"></i> Novo
+                            </a>
+                        @endcan
                     </div>
                 </div>
             </div>
@@ -82,12 +84,15 @@
                                     <td class="text-center col-md-2">
                                         <div class="row">
                                             <div class="col-md-5 text-center">
+                                                @can('acesso', 'administracao.estoque.itens.edit')
                                                 <a type="button" class="btn btn-primary" title="Editar Itens"
                                                     href="{{ route('administracao.estoque.itens.edit', [$idx->id]) }}">
                                                     <i class="ti-pencil"></i>Editar
                                                 </a>
+                                                @endcan
                                             </div>
                                             <div class="col-md-5 text-center">
+                                                @can('acesso', 'administracao.estoque.itens.destroy')
                                                 <a type="button" class="btn btn-danger" title="Excluir Item"
                                                     onclick="mostrarConfirmacaoExclusao('Excluir Item', 'Deseja realmente excluir o item {{ "\"" . $idx->nome . "\"" }}?', 'Excluir', 'Cancelar', {{ $idx->id }})">
                                                     <i class="ti-trash"></i> Excluir
@@ -98,6 +103,7 @@
                                                     @csrf
                                                     @method('DELETE')
                                                 </form>
+                                                @endcan
                                             </div>
                                         </div>
                                     </td>

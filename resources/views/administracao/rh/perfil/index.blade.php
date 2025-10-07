@@ -51,10 +51,12 @@
                         <h3>Listagem de Perfil</h3>
                     </div>
                     <div class="col-md-2 text-right">
-                        <a id="cancel-btn" class="btn btn-primary btn-out-dashed waves-effect waves-light"
-                            href="{{ route('administracao.rh.perfil.edit') }}">
-                            <i class="ti-plus"></i> Novo
-                        </a>
+                        @can('acesso', 'administracao.rh.perfil.store')
+                            <a id="cancel-btn" class="btn btn-primary btn-out-dashed waves-effect waves-light"
+                                href="{{ route('administracao.rh.perfil.edit') }}">
+                                <i class="ti-plus"></i> Novo
+                            </a>
+                        @endcan
                     </div>
                 </div>
             </div>
@@ -82,12 +84,15 @@
                                     <td class="text-center col-md-2">
                                         <div class="row">
                                             <div class="col-md-5 text-center">
+                                                @can('acesso', 'administracao.rh.perfil.edit')
                                                 <a type="button" class="btn btn-primary" title="Editar perfil"
                                                     href="{{ route('administracao.rh.perfil.edit', [$idx->id]) }}">
                                                     <i class="ti-pencil"></i>Editar
                                                 </a>
+                                                @endcan
                                             </div>
                                             <div class="col-md-5 text-center">
+                                                @can('acesso', 'administracao.rh.perfil.destroy')
                                                 <a type="button" class="btn btn-danger" title="Excluir Perfil"
                                                     onclick="mostrarConfirmacaoExclusao('Excluir Perfil', 'Deseja realmente excluir o Perfil {{ "\"" . $idx->nome . "\"" }}?', 'Excluir', 'Cancelar', {{ $idx->id }})">
                                                     <i class="ti-trash"></i> Excluir
@@ -98,6 +103,7 @@
                                                     @csrf
                                                     @method('DELETE')
                                                 </form>
+                                                @endcan
                                             </div>
                                         </div>
                                     </td>
