@@ -37,6 +37,7 @@ class AuthenticatedSessionController extends Controller
         // Aqui assumimos que você usa sessão própria (não guard padrão do Laravel)
         // Se você usa guard padrão, chame Auth::login($usuario) onde for apropriado.
         $usuario = Usuario::where('matricula', $request->input('matricula'))->first();
+        Auth::login($usuario);
 
         // Preenche sessão de forma controlada
         Session::put('usuario_id', $usuario->id);
@@ -46,28 +47,20 @@ class AuthenticatedSessionController extends Controller
         // guarda apenas os IDs de função (mínimo necessário)
         Session::put('funcoes', $usuario->funcoes()->pluck('FUNCAO.id')->toArray());
 
-        // $request->session()->regenerate();
-
+        $request->session()->regenerate();
         return redirect()->intended(RouteServiceProvider::HOME);
     }
 
     /**
      * Destroy an authenticated session.
-     *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\RedirectResponse
      */
     public function destroy(Request $request)
     {
         Auth::guard('web')->logout();
-        // Session::put('matricula', '');
-        // Session::put('nome', '');
-        // Session::put('perfil', '');
-        // Session::put('usuario_id', '');
         $request->session()->invalidate();
-
         $request->session()->regenerateToken();
-
         return redirect('/');
     }
 }

@@ -36,7 +36,7 @@ CREATE SEQUENCE seq_USUARIOS INCREMENT BY 1 START WITH 1;
 create table if not exists USUARIOS(
  id int auto_increment not null,
  nome VARCHAR(255) not null,
- senha VARCHAR(255) not null,
+ senha VARCHAR(255) null,
  matricula int not null unique,
  data_admissao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
  situacao_id int not null,
@@ -123,4 +123,13 @@ CREATE TABLE IF NOT EXISTS PERMISSAO (
     nome VARCHAR(150) NOT NULL,             -- Nome interno (ex.: estoque_editar)
     descricao VARCHAR(255) NOT NULL,        -- Descrição legível (ex.: Editar Estoque)
     ativo TINYINT(1) DEFAULT 1             -- Permissão ativa (1) ou desativada (0)
+);
+
+CREATE TABLE IF NOT EXISTS PERMISSAO_FUNCAO (
+    permissao_id INT NOT NULL,
+    funcao_id INT NOT NULL,
+    data_atribuicao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (permissao_id, funcao_id),
+    FOREIGN KEY (permissao_id) REFERENCES PERMISSAO(id) ON DELETE CASCADE,
+    FOREIGN KEY (funcao_id) REFERENCES FUNCAO(id) ON DELETE CASCADE
 );

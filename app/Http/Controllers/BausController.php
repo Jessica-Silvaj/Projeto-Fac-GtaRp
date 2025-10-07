@@ -68,6 +68,7 @@ class BausController extends Controller
         try {
             DB::beginTransaction();
             $banco = baus::find($id);
+            LogCadastro::inserir("BAUS", "EXCLUIR", "NOME: {$banco->nome}, Excluindo", $banco->id);
             $banco->delete();
             DB::commit();
             return redirect()->back()->with('success', 'O baú foi excluído com sucesso.');

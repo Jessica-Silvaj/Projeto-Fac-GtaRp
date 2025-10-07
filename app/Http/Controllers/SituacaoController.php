@@ -68,6 +68,7 @@ class SituacaoController extends Controller
         try {
             DB::beginTransaction();
             $banco = Situacao::find($id);
+            LogCadastro::inserir("SITUAÇÃO", "EXCLUIR", "NOME: {$banco->nome}, Excluindo", $banco->id);
             $banco->delete();
             DB::commit();
             return redirect()->back()->with('success', 'A situação do foi excluído com sucesso.');

@@ -68,6 +68,7 @@ class ItensController extends Controller
         try {
             DB::beginTransaction();
             $banco = Itens::find($id);
+            LogCadastro::inserir("ITEM", "EXCLUIR", "NOME: {$banco->nome}, Excluindo", $banco->id);
             $banco->delete();
             DB::commit();
             return redirect()->back()->with('success', 'O item do foi excluído com sucesso.');

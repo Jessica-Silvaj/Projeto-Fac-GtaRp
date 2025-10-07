@@ -8,8 +8,9 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FuncaoController;
 use App\Http\Controllers\ItensController;
 use App\Http\Controllers\PerfilController;
+use App\Http\Controllers\PermissoesController;
 use App\Http\Controllers\SituacaoController;
-use App\Http\Middleware\CheckAuth;
+use App\Http\Controllers\UsuarioController;
 use App\Models\Situacao;
 
 /*
@@ -26,9 +27,10 @@ use App\Models\Situacao;
 Route::get('/', function () {
     return view('auth.login');
 });
+
 Route::get("/logout", [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
-Route::middleware(CheckAuth::class)->group(function () {
+Route::middleware('auth.check')->group(function () {
     // DASBHOARD
     Route::get("/dashboard", [DashboardController::class, 'index'])->name('dashboard');
     // PERFIL
@@ -36,46 +38,53 @@ Route::middleware(CheckAuth::class)->group(function () {
     // Route::post("/perfil/usuario", [PerfilController::class, 'store'])->name('perfil.store');
     Route::post("/perfil/usuario/alterarSenha", [PerfilController::class, 'alterarSenha'])->name('usuario.alterarSenha');
 
-    // ADMINISTRAÇÃO
-    //  -- RESCURSOS HUMANOS
+    Route::middleware('perm')->group(function () {
+        // ADMINISTRAÇÃO (Protegido por permissão baseada no nome da rota)
+        //  -- RESCURSOS HUMANOS
+        //  --- Usuario
+        Route::get("/administracao/rh/usuario/index", [UsuarioController::class, 'index'])->name('administracao.rh.usuario.index');
+        Route::get("/administracao/rh/usuario/edit/{id?}", [UsuarioController::class, 'edit'])->name('administracao.rh.usuario.edit');
+        Route::delete('/administracao/rh/usuario/delete/{id}', [UsuarioController::class, 'destroy'])->name('administracao.rh.usuario.destroy');
+        Route::post("/administracao/rh/usuario/store", [UsuarioController::class, 'store'])->name('administracao.rh.usuario.store');
 
-    //  --- Usuario
-    Route::get("/administracao/rh/usuario/index", [UsuarioController::class, 'index'])->name('administracao.rh.usuario.index');
-    Route::get("/administracao/rh/usuario/edit/{id?}", [UsuarioController::class, 'edit'])->name('administracao.rh.usuario.edit');
-    Route::delete('/administracao/rh/usuario/delete/{id}', [UsuarioController::class, 'destroy'])->name('administracao.rh.usuario.destroy');
-    Route::post("/administracao/rh/usuario/store", [UsuarioController::class, 'store'])->name('administracao.rh.usuario.store');
+        //  --- Perfil
+        Route::get("/administracao/rh/perfil/index", [AdmPerfilController::class, 'index'])->name('administracao.rh.perfil.index');
+        Route::get("/administracao/rh/perfil/edit/{id?}", [AdmPerfilController::class, 'edit'])->name('administracao.rh.perfil.edit');
+        Route::delete('/administracao/rh/perfil/delete/{id}', [AdmPerfilController::class, 'destroy'])->name('administracao.rh.perfil.destroy');
+        Route::post("/administracao/rh/perfil/store", [AdmPerfilController::class, 'store'])->name('administracao.rh.perfil.store');
 
-    //  --- Perfil
-    Route::get("/administracao/rh/perfil/index", [AdmPerfilController::class, 'index'])->name('administracao.rh.perfil.index');
-    Route::get("/administracao/rh/perfil/edit/{id?}", [AdmPerfilController::class, 'edit'])->name('administracao.rh.perfil.edit');
-    Route::delete('/administracao/rh/perfil/delete/{id}', [AdmPerfilController::class, 'destroy'])->name('administracao.rh.perfil.destroy');
-    Route::post("/administracao/rh/perfil/store", [AdmPerfilController::class, 'store'])->name('administracao.rh.perfil.store');
+        //  --- Situação
+        Route::get("/administracao/rh/situacao/index", [SituacaoController::class, 'index'])->name('administracao.rh.situacao.index');
+        Route::get("/administracao/rh/situacao/edit/{id?}", [SituacaoController::class, 'edit'])->name('administracao.rh.situacao.edit');
+        Route::delete('/administracao/rh/situacao/delete/{id}', [SituacaoController::class, 'destroy'])->name('administracao.rh.situacao.destroy');
+        Route::post("/administracao/rh/situacao/store", [SituacaoController::class, 'store'])->name('administracao.rh.situacao.store');
 
-    //  --- Situação
-    Route::get("/administracao/rh/situacao/index", [SituacaoController::class, 'index'])->name('administracao.rh.situacao.index');
-    Route::get("/administracao/rh/situacao/edit/{id?}", [SituacaoController::class, 'edit'])->name('administracao.rh.situacao.edit');
-    Route::delete('/administracao/rh/situacao/delete/{id}', [SituacaoController::class, 'destroy'])->name('administracao.rh.situacao.destroy');
-    Route::post("/administracao/rh/situacao/store", [SituacaoController::class, 'store'])->name('administracao.rh.situacao.store');
+        //  --- Função
+        Route::get("/administracao/rh/funcao/index", [FuncaoController::class, 'index'])->name('administracao.rh.funcao.index');
+        Route::get("/administracao/rh/funcao/edit/{id?}", [FuncaoController::class, 'edit'])->name('administracao.rh.funcao.edit');
+        Route::delete('/administracao/rh/funcao/delete/{id}', [FuncaoController::class, 'destroy'])->name('administracao.rh.funcao.destroy');
+        Route::post("/administracao/rh/funcao/store", [FuncaoController::class, 'store'])->name('administracao.rh.funcao.store');
 
-    //  --- Função
-    Route::get("/administracao/rh/funcao/index", [FuncaoController::class, 'index'])->name('administracao.rh.funcao.index');
-    Route::get("/administracao/rh/funcao/edit/{id?}", [FuncaoController::class, 'edit'])->name('administracao.rh.funcao.edit');
-    Route::delete('/administracao/rh/funcao/delete/{id}', [FuncaoController::class, 'destroy'])->name('administracao.rh.funcao.destroy');
-    Route::post("/administracao/rh/funcao/store", [FuncaoController::class, 'store'])->name('administracao.rh.funcao.store');
+        //  -- ESTOQUE
+        //  --- Itens
+        Route::get("/administracao/estoque/itens/index", [ItensController::class, 'index'])->name('administracao.estoque.itens.index');
+        Route::get("/administracao/estoque/itens/edit/{id?}", [ItensController::class, 'edit'])->name('administracao.estoque.itens.edit');
+        Route::delete('/administracao/estoque/itens/delete/{id}', [ItensController::class, 'destroy'])->name('administracao.estoque.itens.destroy');
+        Route::post("/administracao/estoque/itens/store", [ItensController::class, 'store'])->name('administracao.estoque.itens.store');
 
-    //  -- ESTOQUE
-    //  --- Itens
-    Route::get("/administracao/estoque/itens/index", [ItensController::class, 'index'])->name('administracao.estoque.itens.index');
-    Route::get("/administracao/estoque/itens/edit/{id?}", [ItensController::class, 'edit'])->name('administracao.estoque.itens.edit');
-    Route::delete('/administracao/estoque/itens/delete/{id}', [ItensController::class, 'destroy'])->name('administracao.estoque.itens.destroy');
-    Route::post("/administracao/estoque/itens/store", [ItensController::class, 'store'])->name('administracao.estoque.itens.store');
+        //  --- Baús
+        Route::get("/administracao/estoque/baus/index", [BausController::class, 'index'])->name('administracao.estoque.baus.index');
+        Route::get("/administracao/estoque/baus/edit/{id?}", [BausController::class, 'edit'])->name('administracao.estoque.baus.edit');
+        Route::delete('/administracao/estoque/baus/delete/{id}', [BausController::class, 'destroy'])->name('administracao.estoque.baus.destroy');
+        Route::post("/administracao/estoque/baus/store", [BausController::class, 'store'])->name('administracao.estoque.baus.store');
 
-    //  -- ESTOQUE
-    //  --- Baús
-    Route::get("/administracao/estoque/baus/index", [BausController::class, 'index'])->name('administracao.estoque.baus.index');
-    Route::get("/administracao/estoque/baus/edit/{id?}", [BausController::class, 'edit'])->name('administracao.estoque.baus.edit');
-    Route::delete('/administracao/estoque/baus/delete/{id}', [BausController::class, 'destroy'])->name('administracao.estoque.baus.destroy');
-    Route::post("/administracao/estoque/baus/store", [BausController::class, 'store'])->name('administracao.estoque.baus.store');
+        //  -- SISTEMA
+        //  --- Permissões
+        Route::get("/administracao/sistema/permissoes/index", [PermissoesController::class, 'index'])->name('administracao.sistema.permissoes.index');
+        Route::get("/administracao/sistema/permissoes/edit/{id?}", [PermissoesController::class, 'edit'])->name('administracao.sistema.permissoes.edit');
+        Route::delete('/administracao/sistema/permissoes/delete/{id}', [PermissoesController::class, 'destroy'])->name('administracao.sistema.permissoes.destroy');
+        Route::post("/administracao/sistema/permissoes/store", [PermissoesController::class, 'store'])->name('administracao.sistema.permissoes.store');
+    });
 });
 
 require __DIR__ . '/auth.php';

@@ -7,39 +7,33 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
-class Funcao extends Model
+
+class Permissoes extends Model
 {
     use HasFactory;
 
-    protected $table = 'FUNCAO';
+    protected $table = 'PERMISSAO';
     protected $primatyKey = 'id';
-    public static $sequence = 'seq_FUNCAO';
+    public static $sequence = "seq_PERMISSAO";
     public $timestamps = false;
 
     protected $fillable =
     [
         'nome',
+        'descricao',
         'ativo'
+
     ];
 
-    public function usuarios()
+    public function funcoes()
     {
-        return $this->belongsToMany(Usuario::class, 'USUARIO_FUNCAO', 'funcao_id', 'usuario_id')
-            ->using(UsuarioFuncao::class)
-            ->withPivot('data_atribuicao');
-    }
-
-    public function permissoes()
-    {
-        return $this->belongsToMany(Permissoes::class, 'PERMISSAO_FUNCAO', 'funcao_id', 'permissao_id')
-            ->using(PermissoesFuncao::class)
+        return $this->belongsToMany(Funcao::class, 'PERMISSAO_FUNCAO', 'permissao_id', 'funcao_id')
             ->withPivot('data_atribuicao');
     }
 
     public static function obterTodos()
     {
         return self::orderBy('nome')
-            ->where('ativo', 1)
             ->get();
     }
 
@@ -48,7 +42,11 @@ class Funcao extends Model
         $query = self::orderBy('nome');
 
         if (!empty($request->nome)) {
-            $query = $query->where('nome', 'LIKE', '%' . Str::upper($request->nome) . '%');
+            $query = $query->where('nome', 'LIKE', '%' . $request->nome . '%');
+        }
+
+        if (!empty($request->descricao)) {
+            $query = $query->where('descricao', 'LIKE', '%' . Str::upper($request->descricao) . '%');
         }
 
         if ($request->filled('ativo')) {

@@ -68,6 +68,7 @@ class FuncaoController extends Controller
         try {
             DB::beginTransaction();
             $banco = Funcao::find($id);
+            LogCadastro::inserir("FUNÇÃO", "EXCLUIR", "NOME: {$banco->nome}, Excluindo", $banco->id);
             $banco->delete();
             DB::commit();
             return redirect()->back()->with('success', 'A função foi excluído com sucesso.');

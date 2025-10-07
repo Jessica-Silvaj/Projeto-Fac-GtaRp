@@ -12,7 +12,8 @@
                         @endif
                     </div>
                     <div class="col-md-2 text-right">
-                        <a id="voltar-btn" type="button" class="btn btn-sm btn-primary waves-light"
+                        <a id="voltar-btn" type="button"
+                            class="btn btn-sm btn-primary btn-out-dashed waves-effect waves-light"
                             href="{{ route('administracao.estoque.baus.index') }}">
                             <i class="ti-arrow-left"></i> Voltar
                         </a>
@@ -45,10 +46,12 @@
                 <div class="card-footer">
                     <div class="row justify-content-center">
                         <div class="form-group col-sm-12 text-center">
-                            <button type="submit" id="save-btn"
-                                class="btn btn-primary btn-out-dashed waves-effect waves-light"><i
-                                    class="ti-save"></i>Salvar</button>
-                            <a id="cancel-btn" class="btn btn-danger btn-out-dashed waves-effect waves-light"
+                            @can('acesso', 'administracao.estoque.baus.store')
+                                <button type="submit" id="save-btn"
+                                    class="btn btn-sm btn-primary btn-out-dashed waves-effect waves-light"><i
+                                        class="ti-save"></i>Salvar</button>
+                            @endcan
+                            <a id="cancel-btn" class="btn btn-sm btn-danger btn-out-dashed waves-effect waves-light"
                                 href="{{ route('administracao.estoque.baus.edit', [$baus->id]) }}"><i
                                     class="ti-close"></i></i>Cancelar
                             </a>

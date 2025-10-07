@@ -68,6 +68,7 @@ class AdmPerfilController extends Controller
         try {
             DB::beginTransaction();
             $banco = Perfil::find($id);
+            LogCadastro::inserir("PERFIL", "EXCLUIR", "NOME: {$banco->nome}, Excluindo", $banco->id);
             $banco->delete();
             DB::commit();
             return redirect()->back()->with('success', 'O Perfil foi excluído com sucesso.');

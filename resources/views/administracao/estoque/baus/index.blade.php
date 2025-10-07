@@ -29,10 +29,10 @@
                     <div class="row justify-content-center">
                         <div class="form-group col-sm-12 text-center">
                             <button type="submit" id="save-btn"
-                                class="btn btn-success btn-out-dashed waves-effect waves-light">
+                                class="btn btn-sm btn-success btn-out-dashed waves-effect waves-light">
                                 <i class="ti-search"></i> Pesquisar
                             </button>
-                            <a id="cancel-btn" class="btn btn-primary btn-out-dashed waves-effect waves-light"
+                            <a id="cancel-btn" class="btn btn-sm btn-primary btn-out-dashed waves-effect waves-light"
                                 href="{{ route('administracao.estoque.baus.index') }}">
                                 <i class="ti-close"></i> Limpar
                             </a>
@@ -52,7 +52,7 @@
                     </div>
                     <div class="col-md-2 text-right">
                         @can('acesso', 'administracao.estoque.baus.store')
-                            <a id="cancel-btn" class="btn btn-primary btn-out-dashed waves-effect waves-light"
+                            <a id="cancel-btn" class="btn  btn-sm btn-primary btn-out-dashed waves-effect waves-light"
                                 href="{{ route('administracao.estoque.baus.edit') }}">
                                 <i class="ti-plus"></i> Novo
                             </a>
@@ -82,18 +82,15 @@
                                         @endif
                                     </td>
                                     <td class="text-center col-md-2">
-                                        <div class="row">
-                                            <div class="col-md-5 text-center">
-                                                @can('acesso', 'administracao.estoque.baus.edit')
-                                                <a type="button" class="btn btn-primary" title="Editar Baú"
+                                        <div class="text-center table-actions">
+                                            @can('acesso', 'administracao.estoque.baus.edit')
+                                                <a type="button" class="btn btn-sm btn-primary" title="Editar Baú"
                                                     href="{{ route('administracao.estoque.baus.edit', [$idx->id]) }}">
                                                     <i class="ti-pencil"></i>Editar
                                                 </a>
-                                                @endcan
-                                            </div>
-                                            <div class="col-md-5 text-center">
-                                                @can('acesso', 'administracao.estoque.baus.destroy')
-                                                <a type="button" class="btn btn-danger" title="Excluir Baú"
+                                            @endcan
+                                            @can('acesso', 'administracao.estoque.baus.destroy')
+                                                <a type="button" class="btn btn-sm btn-danger" title="Excluir Baú"
                                                     onclick="mostrarConfirmacaoExclusao('Excluir Baú', 'Deseja realmente excluir o Baú {{ "\"" . $idx->nome . "\"" }}?', 'Excluir', 'Cancelar', {{ $idx->id }})">
                                                     <i class="ti-trash"></i> Excluir
                                                 </a>
@@ -103,8 +100,7 @@
                                                     @csrf
                                                     @method('DELETE')
                                                 </form>
-                                                @endcan
-                                            </div>
+                                            @endcan
                                         </div>
                                     </td>
                                 </tr>

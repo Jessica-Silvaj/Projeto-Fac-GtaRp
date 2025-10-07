@@ -113,18 +113,15 @@
                                         @endforelse
                                     </td>
                                     <td class="text-center col-md-2">
-                                        <div class="row">
-                                            <div class="col-md-5 text-center">
-                                                @can('acesso', 'administracao.rh.usuario.edit')
-                                                <a type="button" class="btn btn-primary" title="Editar Usuário"
+                                        <div class="text-center table-actions">
+                                            @can('acesso', 'administracao.rh.usuario.edit')
+                                                <a type="button" class="btn btn-sm btn-primary" title="Editar Usuário"
                                                     href="{{ route('administracao.rh.usuario.edit', [$idx->id]) }}">
                                                     <i class="ti-pencil"></i>Editar
                                                 </a>
-                                                @endcan
-                                            </div>
-                                            <div class="col-md-5 text-center">
-                                                @can('acesso', 'administracao.rh.usuario.destroy')
-                                                <a type="button" class="btn btn-danger" title="Excluir Usuário"
+                                            @endcan
+                                            @can('acesso', 'administracao.rh.usuario.destroy')
+                                                <a type="button" class="btn btn-sm btn-danger" title="Excluir Usuário"
                                                     onclick="mostrarConfirmacaoExclusao('Excluir Usuário', 'Deseja realmente excluir o usuário {{ "\"" . $idx->nome . "\"" }}?', 'Excluir', 'Cancelar', {{ $idx->id }})">
                                                     <i class="ti-trash"></i> Excluir
                                                 </a>
@@ -134,8 +131,7 @@
                                                     @csrf
                                                     @method('DELETE')
                                                 </form>
-                                                @endcan
-                                            </div>
+                                            @endcan
                                         </div>
                                     </td>
                                 </tr>

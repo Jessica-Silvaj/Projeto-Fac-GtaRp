@@ -6,17 +6,17 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class UsuarioFuncao extends Model
+class PermissoesFuncao extends Model
 {
     use HasFactory;
 
-    protected $table = 'USUARIO_FUNCAO';
+    protected $table = 'PERMISSAO_FUNCAO';
     public $timestamps = false;
     public $incrementing = false;
 
     protected $fillable =
     [
-        'usuario_id',
+        'permissao_id',
         'funcao_id',
         'data_atribuicao'
     ];
