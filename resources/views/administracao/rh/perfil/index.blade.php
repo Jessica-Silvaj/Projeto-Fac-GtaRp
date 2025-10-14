@@ -1,4 +1,4 @@
-@extends('layouts.master', ['titulo' => 'Perfil', 'subtitulo' => 'Perfils Cadastradas'])
+@extends('layouts.master', ['titulo' => 'Perfil', 'subtitulo' => 'Perfis Cadastrados'])
 @section('conteudo')
     <div class="col-sm-12">
         <div class="card">
@@ -114,7 +114,7 @@
                         </tbody>
                         <tfoot>
                             <td colspan="3">
-                                Total de Registros: <strong>{{ $listPerfil->count() }}</strong>
+                                Total de Registros: <strong>{{ method_exists($listPerfil, 'total') ? $listPerfil->total() : $listPerfil->count() }}</strong>
                             </td>
                         </tfoot>
                     </table>
@@ -160,3 +160,4 @@
         }
     </script>
 @endsection
+

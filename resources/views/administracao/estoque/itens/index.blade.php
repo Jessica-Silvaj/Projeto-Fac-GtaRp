@@ -9,13 +9,12 @@
                 <div class="card-block">
                     <div class="form-row justify-content-center align-items-center">
                         <div class="form-group form-default form-static-label col-md-6">
-                            <input type="text" id="nome" name="nome" class="form-control"
-                                value="{{ request()->get('nome') }}">
+                            <input type="text" id="nome" name="nome" class="form-control" value="{{ request()->get('nome') }}">
                             <span class="form-bar"></span>
                             <label for="nome" class="float-label">Nome</label>
                         </div>
                         <div class="form-group form-default form-static-label col-md-6">
-                            <select name="ativo" id="ativo" class="form-control">
+                            <select name="ativo" id="ativo" class="form-control select2">
                                 <option value="">Selecione</option>
                                 <option value="1" {{ request()->get('ativo') == '1' ? 'selected' : '' }}>SIM</option>
                                 <option value="0" {{ request()->get('ativo') == '0' ? 'selected' : '' }}>NÃO</option>
@@ -28,12 +27,10 @@
                 <div class="card-footer">
                     <div class="row justify-content-center">
                         <div class="form-group col-sm-12 text-center">
-                            <button type="submit" id="save-btn"
-                                class="btn btn-sm btn-success btn-out-dashed waves-effect waves-light">
+                            <button type="submit" id="save-btn" class="btn btn-sm btn-success btn-out-dashed waves-effect waves-light">
                                 <i class="ti-search"></i> Pesquisar
                             </button>
-                            <a id="cancel-btn" class="btn btn-sm btn-primary btn-out-dashed waves-effect waves-light"
-                                href="{{ route('administracao.estoque.itens.index') }}">
+                            <a id="cancel-btn" class="btn btn-sm btn-primary btn-out-dashed waves-effect waves-light" href="{{ route('administracao.estoque.itens.index') }}">
                                 <i class="ti-close"></i> Limpar
                             </a>
                         </div>
@@ -52,8 +49,7 @@
                     </div>
                     <div class="col-md-2 text-right">
                         @can('acesso', 'administracao.estoque.itens.store')
-                            <a id="cancel-btn" class="btn btn-sm btn-primary btn-out-dashed waves-effect waves-light"
-                                href="{{ route('administracao.estoque.itens.edit') }}">
+                            <a id="cancel-btn" class="btn btn-sm btn-primary btn-out-dashed waves-effect waves-light" href="{{ route('administracao.estoque.itens.edit') }}">
                                 <i class="ti-plus"></i> Novo
                             </a>
                         @endcan
@@ -84,19 +80,15 @@
                                     <td class="text-center col-md-2">
                                         <div class="text-center table-actions">
                                             @can('acesso', 'administracao.estoque.itens.edit')
-                                                <a type="button" class="btn btn-sm btn-primary" title="Editar Itens"
-                                                    href="{{ route('administracao.estoque.itens.edit', [$idx->id]) }}">
+                                                <a type="button" class="btn btn-sm btn-primary" title="Editar Itens" href="{{ route('administracao.estoque.itens.edit', [$idx->id]) }}">
                                                     <i class="ti-pencil"></i>Editar
                                                 </a>
                                             @endcan
                                             @can('acesso', 'administracao.estoque.itens.destroy')
-                                                <a type="button" class="btn btn-sm btn-danger" title="Excluir Item"
-                                                    onclick="mostrarConfirmacaoExclusao('Excluir Item', 'Deseja realmente excluir o item {{ "\"" . $idx->nome . "\"" }}?', 'Excluir', 'Cancelar', {{ $idx->id }})">
+                                                <a type="button" class="btn btn-sm btn-danger" title="Excluir Item" onclick="mostrarConfirmacaoExclusao('Excluir Item', 'Deseja realmente excluir o item {{ "\"" . $idx->nome . "\"" }}?', 'Excluir', 'Cancelar', {{ $idx->id }})">
                                                     <i class="ti-trash"></i> Excluir
                                                 </a>
-                                                <form id="{{ $idx->id }}"
-                                                    action="{{ route('administracao.estoque.itens.destroy', [$idx->id]) }}"
-                                                    method="POST">
+                                                <form id="{{ $idx->id }}" action="{{ route('administracao.estoque.itens.destroy', [$idx->id]) }}" method="POST">
                                                     @csrf
                                                     @method('DELETE')
                                                 </form>
@@ -114,7 +106,7 @@
                         </tbody>
                         <tfoot>
                             <td colspan="3">
-                                Total de Registros: <strong>{{ $listItens->count() }}</strong>
+                                Total de Registros: <strong>{{ method_exists($listItens, 'total') ? $listItens->total() : $listItens->count() }}</strong>
                             </td>
                         </tfoot>
                     </table>
@@ -137,7 +129,7 @@
                 buttonStyling: false
             })
 
-            Swal.fire({
+        Swal.fire({
                 title: titulo,
                 text: texto,
                 icon: 'question',

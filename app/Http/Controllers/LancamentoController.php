@@ -1,0 +1,136 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Services\Contracts\LancamentoServiceInterface;
+use App\Services\Contracts\LoggingServiceInterface;
+use App\Http\Requests\LancamentoRequest;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use App\Models\Baus;
+use App\Models\Usuario;
+
+class LancamentoController extends Controller
+{
+    public function __construct(
+        private LancamentoServiceInterface $service,
+        private LoggingServiceInterface $logger
+    ) {}
+
+    public function index(Request $request)
+    {
+        $listLancamentos = $this->service->listar($request);
+        return view('controleBau.bau.lancamentos.index', compact('listLancamentos'));
+    }
+
+    public function edit($id = 0)
+    {
+        $data = $this->service->dadosEdicao((int) $id);
+        return view('controleBau.bau.lancamentos.edit', $data);
+    }
+
+    public function store(LancamentoRequest $request)
+    {
+        try {
+            $this->service->salvar($request->validated());
+            return redirect()->route('bau.lancamentos.index')->with('success', 'O lançamento foi salvo com sucesso.');
+        } catch (\Throwable $e) {
+            $this->logger->excecao($e);
+            return redirect()->back()->with('error', 'Ocorreu um erro ao salvar o lançamento');
+        }
+    }
+
+    public function destroy($id)
+    {
+        try {
+            $this->service->excluir((int) $id);
+            return redirect()->back()->with('success', 'O lançamento foi exclui­do com sucesso.');
+        } catch (\Throwable $e) {
+            $this->logger->excecao($e);
+            return redirect()->back()->with('error', 'Ocorreu um erro ao excluir o lançamento');
+        }
+    }
+
+    public function searchBaus(Request $request)
+    {
+        $term = trim((string) $request->get('q', ''));
+        $query = Baus::query()->where('ativo', 1);
+        if ($term !== '') {
+            $query->where('nome', 'LIKE', '%' . Str::upper($term) . '%');
+        }
+        $items = $query->orderBy('nome')->limit(20)->get(['id', 'nome']);
+        return response()->json([
+            'results' => $items->map(fn($i) => ['id' => $i->id, 'text' => $i->nome]),
+        ]);
+    }
+
+    public function historico(Request $request)
+    {
+        $data = $this->service->historico($request);
+        return view('controleBau.bau.lancamentos.historico', $data);
+    }
+
+    public function historicoCsv(Request $request)
+    {
+        $data = $this->service->historico($request);
+        $dataset = (string) $request->get('dataset', 'serie'); // serie|top_entradas|top_saidas
+        $modo = (string) ($data['modo'] ?? 'quantidade');
+        $granularidade = (string) ($data['granularidade'] ?? 'dia');
+
+        $filename = 'historico_' . $dataset . '_' . date('Ymd_His') . '.csv';
+
+        return response()->streamDownload(function () use ($dataset, $data, $modo, $granularidade) {
+            $out = fopen('php://output', 'w');
+            // BOM for Excel UTF-8
+            fprintf($out, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+            if ($dataset === 'top_entradas') {
+                fputcsv($out, ['Item', $modo === 'movimentos' ? 'Movimentações' : 'Quantidade', 'Tipo'], ';');
+                foreach (($data['entradasPorItemTodos'] ?? $data['entradasPorItem'] ?? []) as $row) {
+                    fputcsv($out, [$row['label'] ?? '', (int) ($row['value'] ?? 0), 'Entradas'], ';');
+                }
+            } elseif ($dataset === 'top_saidas') {
+                fputcsv($out, ['Item', $modo === 'movimentos' ? 'Movimentações' : 'Quantidade', 'Tipo'], ';');
+                foreach (($data['saidasPorItemTodos'] ?? $data['saidasPorItem'] ?? []) as $row) {
+                    fputcsv($out, [$row['label'] ?? '', (int) ($row['value'] ?? 0), 'Saídas'], ';');
+                }
+            } else { // serie
+                fputcsv($out, ['Período', 'Entradas', 'Saídas', 'Métrica', 'Granularidade'], ';');
+                foreach (($data['serie'] ?? []) as $row) {
+                    fputcsv($out, [$row['y'] ?? '', (int) ($row['entradas'] ?? 0), (int) ($row['saidas'] ?? 0), $modo, $granularidade], ';');
+                }
+            }
+
+            fclose($out);
+        }, $filename, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
+    }
+
+    public function historicoJson(Request $request)
+    {
+        $data = $this->service->historico($request);
+        $dataset = (string) $request->get('dataset', '');
+        if ($dataset === '') {
+            return response()->json($data);
+        }
+        $map = [
+            'serie' => $data['serie'] ?? [],
+            'serie_prev' => $data['seriePrev'] ?? [],
+            'saldo' => $data['saldoSerie'] ?? [],
+            'saldo_prev' => $data['saldoPrev'] ?? [],
+            'top_entradas' => $data['entradasPorItemTodos'] ?? ($data['entradasPorItem'] ?? []),
+            'top_saidas' => $data['saidasPorItemTodos'] ?? ($data['saidasPorItem'] ?? []),
+            'top_baus_entradas' => $data['topBausEntradas'] ?? [],
+            'top_baus_saidas' => $data['topBausSaidas'] ?? [],
+            'detalhado' => $data['detalhes'] ?? [],
+        ];
+        return response()->json($map[$dataset] ?? []);
+    }
+
+    public function historicoDetalhes(Request $request)
+    {
+        $det = $this->service->detalhes($request);
+        return response()->json($det);
+    }
+}

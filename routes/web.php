@@ -7,6 +7,8 @@ use App\Http\Controllers\BausController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FuncaoController;
 use App\Http\Controllers\ItensController;
+use App\Http\Controllers\ProdutoController;
+use App\Http\Controllers\LancamentoController;
 use App\Http\Controllers\PerfilController;
 use App\Http\Controllers\PermissoesController;
 use App\Http\Controllers\SituacaoController;
@@ -72,6 +74,15 @@ Route::middleware('auth.check')->group(function () {
         Route::delete('/administracao/estoque/itens/delete/{id}', [ItensController::class, 'destroy'])->name('administracao.estoque.itens.destroy');
         Route::post("/administracao/estoque/itens/store", [ItensController::class, 'store'])->name('administracao.estoque.itens.store');
 
+        //  --- Produtos (Fabricação)
+        Route::prefix('administracao/fabricacao/produtos')->name('administracao.fabricacao.produtos.')->group(function () {
+            Route::get('index', [ProdutoController::class, 'index'])->name('index');
+            Route::get('edit/{id?}', [ProdutoController::class, 'edit'])->name('edit');
+            Route::post('store', [ProdutoController::class, 'store'])->name('store');
+            Route::delete('delete/{id}', [ProdutoController::class, 'destroy'])->name('destroy');
+            Route::get('itens/search', [ProdutoController::class, 'searchItens'])->name('itens.search');
+        });
+
         //  --- Baús
         Route::get("/administracao/estoque/baus/index", [BausController::class, 'index'])->name('administracao.estoque.baus.index');
         Route::get("/administracao/estoque/baus/edit/{id?}", [BausController::class, 'edit'])->name('administracao.estoque.baus.edit');
@@ -84,6 +95,20 @@ Route::middleware('auth.check')->group(function () {
         Route::get("/administracao/sistema/permissoes/edit/{id?}", [PermissoesController::class, 'edit'])->name('administracao.sistema.permissoes.edit');
         Route::delete('/administracao/sistema/permissoes/delete/{id}', [PermissoesController::class, 'destroy'])->name('administracao.sistema.permissoes.destroy');
         Route::post("/administracao/sistema/permissoes/store", [PermissoesController::class, 'store'])->name('administracao.sistema.permissoes.store');
+    });
+
+    // CONTROLE BAU (fora do admin/perm) - tipo painel
+    Route::prefix('bau/lancamentos')->name('bau.lancamentos.')->group(function () {
+        Route::get('index', [LancamentoController::class, 'index'])->name('index');
+        Route::get('edit/{id?}', [LancamentoController::class, 'edit'])->name('edit');
+        Route::post('store', [LancamentoController::class, 'store'])->name('store');
+        Route::delete('delete/{id}', [LancamentoController::class, 'destroy'])->name('destroy');
+        // Busca de baús (AJAX) para selects do módulo
+        Route::get('bau/baus/search', [LancamentoController::class, 'searchBaus'])->name('bau.baus.search');
+        Route::get('historico', [LancamentoController::class, 'historico'])->name('historico');
+        Route::get('historico/csv', [LancamentoController::class, 'historicoCsv'])->name('historico.csv');
+        Route::get('historico/json', [LancamentoController::class, 'historicoJson'])->name('historico.json');
+        Route::get('historico/detalhes', [LancamentoController::class, 'historicoDetalhes'])->name('historico.detalhes');
     });
 });
 

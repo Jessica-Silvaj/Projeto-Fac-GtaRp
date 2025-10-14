@@ -39,7 +39,7 @@ class Permissoes extends Model
 
     public static function obterPorFiltros($request)
     {
-        $query = self::orderBy('nome');
+        $query = self::with('funcoes')->orderBy('nome');
 
         if (!empty($request->nome)) {
             $query = $query->where('nome', 'LIKE', '%' . $request->nome . '%');
@@ -51,6 +51,13 @@ class Permissoes extends Model
 
         if ($request->filled('ativo')) {
             $query = $query->where('ativo', $request->ativo);
+        }
+
+        if ($request->filled('funcao')) {
+            $fid = (int) $request->funcao;
+            $query = $query->whereHas('funcoes', function ($q) use ($fid) {
+                $q->where('FUNCAO.id', $fid);
+            });
         }
 
         return  $query->get();

@@ -2,80 +2,51 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\LogCadastro;
-use App\Models\LogExcecao;
-use App\Models\Situacao;
-use App\Utils;
-use DateTime;
-use Exception;
+use App\Http\Requests\SituacaoRequest;
+use App\Services\Contracts\LoggingServiceInterface;
+use App\Services\Contracts\SituacaoServiceInterface;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Str;
-
 
 class SituacaoController extends Controller
 {
+    public function __construct(
+        private SituacaoServiceInterface $service,
+        private LoggingServiceInterface $logger
+    ) {
+    }
+
     public function index(Request $request)
     {
-        $request->all();
-        $listSituacao = Situacao::obterPorFiltros($request);
-        $listSituacao = Utils::arrayPaginator($listSituacao, route('administracao.rh.situacao.index'), $request, 10);
+        $listSituacao = $this->service->listar($request);
         return view('administracao.rh.situacao.index', compact('listSituacao'));
     }
 
     public function edit($id = 0)
     {
-        if (empty($id)) {
-            $situacao = new Situacao();
-        } else {
-            $situacao = Situacao::find($id);
-        }
-        return view('administracao.rh.situacao.edit', compact('situacao'));
+        $data = $this->service->dadosEdicao((int) $id);
+        return view('administracao.rh.situacao.edit', $data);
     }
 
-    public function store(Request $request)
+    public function store(SituacaoRequest $request)
     {
         try {
-            $request->all();
-            DB::beginTransaction();
-            if (empty($request->id)) {
-                $situacao = Situacao::create([
-                    'id' => Utils::getSequence(Situacao::$sequence),
-                    'nome' => Str::upper($request->nome),
-                    'ativo' => $request->ativo,
-                ]);
-                LogCadastro::inserir("SITUAÇÃO", "INSERIR", "NOME: " . $situacao->nome . ", Inserindo", $situacao->id);
-            } else {
-                $situacao = Situacao::find($request->id);
-                $situacao->update([
-                    'nome' => Str::upper($request->nome),
-                    'ativo' => $request->ativo,
-                ]);
-                LogCadastro::inserir("SITUAÇÃO", "ATUALIZAR", "NOME: " . $situacao->nome . ", Atualizando", $situacao->id);
-            }
-            DB::commit();
+            $this->service->salvar($request->validated());
             return redirect()->route('administracao.rh.situacao.index')->with('success', 'A situação foi salva com sucesso.');
-        } catch (\Exception $e) {
-            DB::rollback();
-            LogExcecao::inserirExcessao($e);
-            return redirect()->back()->with('error', 'Ocorreu um erro ao salvar o item');
+        } catch (\Throwable $e) {
+            $this->logger->excecao($e);
+            return redirect()->back()->with('error', 'Ocorreu um erro ao salvar a situação');
         }
     }
 
     public function destroy($id)
     {
         try {
-            DB::beginTransaction();
-            $banco = Situacao::find($id);
-            LogCadastro::inserir("SITUAÇÃO", "EXCLUIR", "NOME: {$banco->nome}, Excluindo", $banco->id);
-            $banco->delete();
-            DB::commit();
-            return redirect()->back()->with('success', 'A situação do foi excluído com sucesso.');
-        } catch (\Exception $e) {
-            DB::rollback();
-            LogExcecao::inserirExcessao($e);
-            return redirect()->back()->with('error', 'Ocorreu um erro ao exluir a situação');
+            $this->service->excluir((int) $id);
+            return redirect()->back()->with('success', 'A situação foi excluída com sucesso.');
+        } catch (\Throwable $e) {
+            $this->logger->excecao($e);
+            return redirect()->back()->with('error', 'Ocorreu um erro ao excluir a situação');
         }
     }
 }
+

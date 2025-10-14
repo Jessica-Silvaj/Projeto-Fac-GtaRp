@@ -15,7 +15,7 @@
                             <label for="nome" class="float-label">Nome</label>
                         </div>
                         <div class="form-group form-default form-static-label col-md-6">
-                            <select name="ativo" id="ativo" class="form-control">
+                            <select name="ativo" id="ativo" class="form-control select2">
                                 <option value="">Selecione</option>
                                 <option value="1" {{ request()->get('ativo') == '1' ? 'selected' : '' }}>SIM</option>
                                 <option value="0" {{ request()->get('ativo') == '0' ? 'selected' : '' }}>NÃO</option>
@@ -114,7 +114,7 @@
                         </tbody>
                         <tfoot>
                             <td colspan="3">
-                                Total de Registros: <strong>{{ $listSituacao->count() }}</strong>
+                                Total de Registros: <strong>{{ method_exists($listSituacao, 'total') ? $listSituacao->total() : $listSituacao->count() }}</strong>
                             </td>
                         </tfoot>
                     </table>
@@ -160,3 +160,5 @@
         }
     </script>
 @endsection
+
+

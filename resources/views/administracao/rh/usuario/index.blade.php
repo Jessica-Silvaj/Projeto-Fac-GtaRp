@@ -15,7 +15,7 @@
                             <label for="nome" class="float-label">Nome</label>
                         </div>
                         <div class="form-group form-default form-static-label col-md-6">
-                            <select name="situacao" id="situacao" class="form-control">
+                            <select name="situacao" id="situacao" class="form-control select2">
                                 <option value="">Selecione</option>
                                 @foreach ($situacao as $idx)
                                     <option value="{{ $idx->id }}"
@@ -27,7 +27,7 @@
                             <label for="situacao" class="float-label">Situação</label>
                         </div>
                         <div class="form-group form-default form-static-label col-md-6">
-                            <select name="perfil" id="perfil" class="form-control">
+                            <select name="perfil" id="perfil" class="form-control select2">
                                 <option value="">Selecione</option>
                                 @foreach ($perfil as $idx)
                                     <option value="{{ $idx->id }}"
@@ -39,7 +39,7 @@
                             <label for="perfil" class="float-label">Perfil</label>
                         </div>
                         <div class="form-group form-default form-static-label col-md-6">
-                            <select name="funcoes" id="funcoes" class="form-control">
+                            <select name="funcoes" id="funcoes" class="form-control select2">
                                 <option value="">Selecione</option>
                                 @foreach ($funcoes as $idx)
                                     <option value="{{ $idx->id }}"
@@ -145,7 +145,7 @@
                         </tbody>
                         <tfoot>
                             <td colspan="5">
-                                Total de Registros: <strong>{{ $listUsuario->count() }}</strong>
+                                Total de Registros: <strong>{{ method_exists($listUsuario, 'total') ? $listUsuario->total() : $listUsuario->count() }}</strong>
                             </td>
                         </tfoot>
                     </table>
@@ -191,3 +191,4 @@
         }
     </script>
 @endsection
+

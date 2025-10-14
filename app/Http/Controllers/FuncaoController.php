@@ -2,63 +2,37 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\LogCadastro;
-use App\Models\LogExcecao;
-use App\Models\Funcao;
-use App\Utils;
-use DateTime;
-use Exception;
+use App\Services\Contracts\FuncaoServiceInterface;
+use App\Services\Contracts\LoggingServiceInterface;
+use App\Http\Requests\FuncaoRequest;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Str;
-
 
 class FuncaoController extends Controller
 {
+    public function __construct(
+        private FuncaoServiceInterface $service,
+        private LoggingServiceInterface $logger
+    ) {}
+
     public function index(Request $request)
     {
-        $request->all();
-        $listFuncao = Funcao::obterPorFiltros($request);
-        $listFuncao = Utils::arrayPaginator($listFuncao, route('administracao.rh.funcao.index'), $request, 10);
+        $listFuncao = $this->service->listar($request);
         return view('administracao.rh.funcao.index', compact('listFuncao'));
     }
 
     public function edit($id = 0)
     {
-        if (empty($id)) {
-            $funcao = new Funcao();
-        } else {
-            $funcao = Funcao::find($id);
-        }
-        return view('administracao.rh.funcao.edit', compact('funcao'));
+        $data = $this->service->dadosEdicao((int) $id);
+        return view('administracao.rh.funcao.edit', $data);
     }
 
-    public function store(Request $request)
+    public function store(FuncaoRequest $request)
     {
         try {
-            $request->all();
-            DB::beginTransaction();
-            if (empty($request->id)) {
-                $funcao = Funcao::create([
-                    'id' => Utils::getSequence(Funcao::$sequence),
-                    'nome' => Str::upper($request->nome),
-                    'ativo' => $request->ativo,
-                ]);
-                LogCadastro::inserir("FUNÇÃO", "INSERIR", "NOME: " . $funcao->nome . ", Inserindo", $funcao->id);
-            } else {
-                $funcao = Funcao::find($request->id);
-                $funcao->update([
-                    'nome' => Str::upper($request->nome),
-                    'ativo' => $request->ativo,
-                ]);
-                LogCadastro::inserir("FUNÇÃO", "ATUALIZAR", "NOME: " . $funcao->nome . ", Atualizando", $funcao->id);
-            }
-            DB::commit();
+            $this->service->salvar($request->validated());
             return redirect()->route('administracao.rh.funcao.index')->with('success', 'A função foi salva com sucesso.');
-        } catch (\Exception $e) {
-            DB::rollback();
-            LogExcecao::inserirExcessao($e);
+        } catch (\Throwable $e) {
+            $this->logger->excecao($e);
             return redirect()->back()->with('error', 'Ocorreu um erro ao salvar a função');
         }
     }
@@ -66,16 +40,11 @@ class FuncaoController extends Controller
     public function destroy($id)
     {
         try {
-            DB::beginTransaction();
-            $banco = Funcao::find($id);
-            LogCadastro::inserir("FUNÇÃO", "EXCLUIR", "NOME: {$banco->nome}, Excluindo", $banco->id);
-            $banco->delete();
-            DB::commit();
-            return redirect()->back()->with('success', 'A função foi excluído com sucesso.');
-        } catch (\Exception $e) {
-            DB::rollback();
-            LogExcecao::inserirExcessao($e);
-            return redirect()->back()->with('error', 'Ocorreu um erro ao exluir a função');
+            $this->service->excluir((int) $id);
+            return redirect()->back()->with('success', 'A função foi excluída com sucesso.');
+        } catch (\Throwable $e) {
+            $this->logger->excecao($e);
+            return redirect()->back()->with('error', 'Ocorreu um erro ao excluir a função');
         }
     }
 }

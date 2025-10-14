@@ -1,4 +1,4 @@
-﻿@extends('layouts.master', ['titulo' => 'Permissões', 'subtitulo' => 'Configuração de Permissões'])
+@extends('layouts.master', ['titulo' => 'Permissões', 'subtitulo' => 'Configuração de Permissões'])
 @section('conteudo')
     <div class="col-sm-12">
         <div class="card">
@@ -9,26 +9,37 @@
                 role="form">
                 <div class="card-block">
                     <div class="form-row justify-content-center align-center">
-                        <div class="form-group form-default form-static-label col-md-4">
+                        <div class="form-group form-default form-static-label col-md-6">
                             <input type="text" id="nome" name="nome" class="form-control"
                                 value="{{ request('nome') }}">
                             <span class="form-bar"></span>
                             <label for="nome" class="float-label">Nome</label>
                         </div>
-                        <div class="form-group form-default form-static-label col-md-4">
+                        <div class="form-group form-default form-static-label col-md-6">
                             <input type="text" id="descricao" name="descricao" class="form-control"
                                 value="{{ request('descricao') }}">
                             <span class="form-bar"></span>
                             <label for="descricao" class="float-label">Descrição</label>
                         </div>
-                        <div class="form-group form-default form-static-label col-md-4">
-                            <select name="ativo" id="ativo" class="form-control">
+                        <div class="form-group form-default form-static-label col-md-6">
+                            <select name="ativo" id="ativo" class="form-control select2">
                                 <option value="">Selecione</option>
                                 <option value="1" @selected(request('ativo') === '1')>SIM</option>
                                 <option value="0" @selected(request('ativo') === '0')>NÃO</option>
                             </select>
                             <span class="form-bar"></span>
                             <label for="ativo" class="float-label">Ativo</label>
+                        </div>
+                        <div class="form-group form-default form-static-label col-md-6">
+                            <select name="funcao" id="funcao" class="form-control select2">
+                                <option value="">Selecione</option>
+                                @foreach ($funcoes as $f)
+                                    <option value="{{ $f->id }}" @selected(request('funcao') == $f->id)>{{ $f->nome }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <span class="form-bar"></span>
+                            <label for="funcao" class="float-label">Função</label>
                         </div>
                     </div>
                 </div>
@@ -74,8 +85,9 @@
                             <tr>
                                 <th class="text-left col-md-3">Nome</th>
                                 <th class="text-left col-md-3">Descrição</th>
-                                <th class="text-center col-md-3">Ativo</th>
-                                <th class="text-center col-md-3">Ações</th>
+                                <th class="text-center col-md-3">Funções</th>
+                                <th class="text-center col-md-1">Ativo</th>
+                                <th class="text-center col-md-2">Ações</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -84,13 +96,21 @@
                                     <td class="text-left col-md-3">{{ $idx->nome }}</td>
                                     <td class="text-left col-md-3">{{ $idx->descricao }}</td>
                                     <td class="text-center col-md-3">
+                                        @forelse ($idx->funcoes as $f)
+                                            <span class="pcoded-badge label label-success"
+                                                style="margin-right: 4px;">{{ $f->nome }}</span>
+                                        @empty
+                                            <span class="text-muted">SEM FUNÇÕES</span>
+                                        @endforelse
+                                    </td>
+                                    <td class="text-center col-md-1">
                                         @if ($idx->ativo == 1)
                                             <span class="pcoded-badge label label-success">SIM</span>
                                         @else
                                             <span class="pcoded-badge label label-danger">NÃO</span>
                                         @endif
                                     </td>
-                                    <td class="text-center col-md-3">
+                                    <td class="text-center col-md-2">
                                         <div class="text-center table-actions">
                                             @can('acesso', 'administracao.sistema.permissoes.edit')
                                                 <a type="button" class="btn btn-primary btn-sm" title="Editar permissão"
@@ -115,12 +135,14 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="4">Nenhum registro encontrado.</td>
+                                    <td colspan="5">Nenhum registro encontrado.</td>
                                 </tr>
                             @endforelse
                         </tbody>
                         <tfoot>
-                            <td colspan="4">Total de registros: <strong>{{ $listPermissoes->count() }}</strong></td>
+                            <td colspan="5">Total de registros:
+                                <strong>{{ method_exists($listPermissoes, 'total') ? $listPermissoes->total() : $listPermissoes->count() }}</strong>
+                            </td>
                         </tfoot>
                     </table>
                 </div>

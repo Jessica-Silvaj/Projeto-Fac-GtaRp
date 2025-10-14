@@ -7,12 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
-class ITENS extends Model
+class Itens extends Model
 {
     use HasFactory;
 
     protected $table = 'ITENS';
-    protected $primatyKey = 'id';
+    protected $primaryKey = 'id';
     public static $sequence = 'seq_ITENS';
     public $timestamps = false;
 
@@ -22,6 +22,12 @@ class ITENS extends Model
         'nome',
         'ativo'
     ];
+
+    public function produtos()
+    {
+        return $this->belongsToMany(Produto::class, 'PRODUTO_ITEM', 'itens_id', 'produto_id')
+            ->withPivot('quantidade');
+    }
 
     public static function obterTodos()
     {

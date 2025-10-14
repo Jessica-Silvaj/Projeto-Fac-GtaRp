@@ -45,7 +45,7 @@
                             <label for="data_admissao" class="float-label">Data de Admissão</label>
                         </div>
                         <div class="form-group form-default form-static-label col-md-4">
-                            <select name="perfil_id" id="perfil_id" class="form-control">
+                            <select name="perfil_id" id="perfil_id" class="form-control select2">
                                 <option value="">Selecione</option>
                                 @foreach ($perfil as $item)
                                     <option {{ $usuario->perfil_id == $item->id ? 'selected' : '' }}
@@ -56,7 +56,7 @@
                             <label for="perfil_id" class="float-label">Perfil</label>
                         </div>
                         <div class="form-group form-default form-static-label col-md-4">
-                            <select name="situacao_id" id="situacao_id" class="form-control">
+                            <select name="situacao_id" id="situacao_id" class="form-control select2">
                                 <option value="">Selecione</option>
                                 @foreach ($situacao as $item)
                                     <option {{ $usuario->situacao_id == $item->id ? 'selected' : '' }}
