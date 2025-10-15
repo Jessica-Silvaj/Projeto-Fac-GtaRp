@@ -1,4 +1,4 @@
-﻿@extends('layouts.master', ['titulo' => 'Historico de Lançamentos', 'subtitulo' => 'Entradas e Saídas (Últimos 30 dias)'])
+@extends('layouts.master', ['titulo' => 'Histórico de Lançamentos', 'subtitulo' => 'Entradas e Saídas (Últimos 30 dias)'])
 @section('conteudo')
     <div class="col-sm-12">
         <div class="card">
@@ -54,7 +54,7 @@
                                 @php $tipoSel = (string) request()->get('tipo', ''); @endphp
                                 <option value=""></option>
                                 <option value="ENTRADA" @selected($tipoSel === 'ENTRADA')>ENTRADA</option>
-                                <option value="SAIDA" @selected($tipoSel === 'SAIDA')>SAÍDA</option>
+                                <option value="SAIDA" @selected($tipoSel === 'SAIDA')>SAIDA</option>
                                 <option value="TRANSFERENCIA" @selected($tipoSel === 'TRANSFERENCIA')>TRANSFERÊNCIA</option>
                             </select>
                             <span class="form-bar"></span>
@@ -99,7 +99,7 @@
                             <label for="usuario_id" class="float-label">Usuário (opcional)</label>
                         </div>
                     </div>
-            <div class="form-row align-items-center mt-2">
+                    <div class="form-row align-items-center mt-2">
                         <div class="form-group col-md-12 mb-0 metric-options text-center">
                             <label class="d-inline-block mr-3 mb-1 metric-title">Métrica</label>
                             <label class="form-check form-check-inline mb-0 mr-3">
@@ -137,15 +137,31 @@
             <div class="card-header d-flex align-items-center justify-content-between">
                 <h3 class="mb-0">Exportações</h3>
                 <div class="text-right export-actions">
-                    <a class="btn btn-sm btn-outline-secondary btn-export"
-                        href="{{ route('bau.lancamentos.historico.csv', array_merge(request()->all(), ['dataset' => 'serie'])) }}">Serie
-                        CSV</a>
-                    <a class="btn btn-sm btn-outline-secondary btn-export"
-                        href="{{ route('bau.lancamentos.historico.csv', array_merge(request()->all(), ['dataset' => 'top_entradas'])) }}">Top
-                        Entradas CSV</a>
-                    <a class="btn btn-sm btn-outline-secondary btn-export"
-                        href="{{ route('bau.lancamentos.historico.csv', array_merge(request()->all(), ['dataset' => 'top_saidas'])) }}">Top
-                        Saídas CSV</a>
+                    @php
+                        $estoqueQuery = array_filter([
+                            'itens_id' => request()->get('itens_id'),
+                            'bau_id' => request()->get('bau_destino_id') ?: request()->get('bau_origem_id'),
+                        ]);
+                        $estoqueUrl =
+                            route('bau.lancamentos.estoque') .
+                            ($estoqueQuery ? '?' . http_build_query($estoqueQuery) : '');
+                    @endphp
+                    @can('acesso', 'bau.lancamentos.estoque')
+                        <a class="btn btn-sm btn-primary mr-2" href="{{ $estoqueUrl }}">
+                            Ver estoque total
+                        </a>
+                    @endcan
+                    @can('acesso', 'bau.lancamentos.historico.csv')
+                        <a class="btn btn-sm btn-outline-secondary btn-export"
+                            href="{{ route('bau.lancamentos.historico.csv', array_merge(request()->all(), ['dataset' => 'serie'])) }}">Serie
+                            CSV</a>
+                        <a class="btn btn-sm btn-outline-secondary btn-export"
+                            href="{{ route('bau.lancamentos.historico.csv', array_merge(request()->all(), ['dataset' => 'top_entradas'])) }}">Top
+                            Entradas CSV</a>
+                        <a class="btn btn-sm btn-outline-secondary btn-export"
+                            href="{{ route('bau.lancamentos.historico.csv', array_merge(request()->all(), ['dataset' => 'top_saidas'])) }}">Top
+                            Saídas CSV</a>
+                    @endcan
                 </div>
             </div>
         </div>
@@ -169,14 +185,14 @@
                         <h3 class="mb-0">Total de Saídas</h3>
                     </div>
                     <div class="card-body">
-                        <h2 class="mb-0 text-danger">{{ number_format($totais['Saídas'] ?? 0, 0, ',', '.') }}</h2>
+                        <h2 class="mb-0 text-danger">{{ number_format($totais['saidas'] ?? 0, 0, ',', '.') }}</h2>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="card">
                     <div class="card-header d-flex align-items-center">
-                        <h3 class="mb-0">Saldo Li­quido</h3>
+                        <h3 class="mb-0">Saldo Líquido</h3>
                     </div>
                     <div class="card-body">
                         @php $liquido = ($totais['entradas'] ?? 0) - ($totais['saidas'] ?? 0); @endphp
@@ -273,13 +289,13 @@
             overflow-y: auto;
         }
 
-        /* deixa as mÃ©tricas com a mesma cor dos labels do tema (float-label) */
+        /* deixa as métricas com a mesma cor dos labels do tema (float-label) */
         .metric-options .metric-title,
         .metric-options .form-check-label {
             color: #d59725;
         }
 
-        /* exportaÃ§Ãµes com a mesma cor do tema */
+        /* exportações com a mesma cor do tema */
         .export-actions .btn-export {
             border-color: #d59725;
             color: #d59725;
@@ -371,12 +387,11 @@
             function drawBarAligned() {
                 var cont = document.getElementById('chart-geral');
                 if (!cont) return;
-                // Calcula a altura até o FINAL do card "Top Saídas""
                 var lastCard = document.querySelector('#col-right-historico .card:last-child');
                 if (lastCard) {
                     var bottom = lastCard.getBoundingClientRect().bottom + window.scrollY;
                     var top = cont.getBoundingClientRect().top + window.scrollY;
-                    var h = bottom - top; // altura exata atÃ© o fim do card Ã  direita
+                    var h = bottom - top; // altura exata até o fim do card à direita
                     // Margem de respiro e limites
                     h = Math.max(220, Math.min(1200, h));
                     cont.style.height = h + 'px';
@@ -398,7 +413,7 @@
                     barColors: ['#28a745', '#dc3545'],
                     barSizeRatio: ratio
                 });
-                // suavizaÃ§Ã£o visual: cantos arredondados das barras
+                // suavização visual: cantos arredondados das barras
                 setTimeout(function() {
                     var rects = document.querySelectorAll('#chart-geral svg rect');
                     rects.forEach(function(r) {
@@ -440,7 +455,7 @@
                 if (!el) return 200;
                 var w = el.offsetWidth || (el.parentElement ? el.parentElement.offsetWidth : 300);
                 // Deixe os donuts mais "finos" (menos altos) conforme granularidade
-                var ratio = 0.45; // padrÃ£o mais fino
+                var ratio = 0.45; // padrão mais fino
                 if (granularidade === 'mes') ratio = 0.38;
                 else if (granularidade === 'semana') ratio = 0.42;
                 else if (granularidade === 'dia') ratio = 0.48;
@@ -474,7 +489,7 @@
                 renderLegend('legend-saidas', showingAllS ? donutSaidasAll : donutSaidas, colorsS);
             }
 
-            // inicializa donuts e botÃµes ver mais/menos
+            // inicializa donuts e botões ver mais/menos
             if (document.getElementById('donut-entradas')) {
                 buildDonutE();
                 var btnE = document.createElement('a');
@@ -589,9 +604,11 @@
                             }
                             dados.forEach(function(d) {
                                 var tr = document.createElement('tr');
+                                var badge = d.fabricacao_auto ?
+                                    ' <span class="badge badge-warning">FABRICACÃO</span>' : '';
                                 tr.innerHTML = '<td>' + (d.data || '') + '</td>' +
                                     '<td>' + (d.tipo || '') + '</td>' +
-                                    '<td>' + (d.item || '') + '</td>' +
+                                    '<td>' + (d.item || '') + badge + '</td>' +
                                     '<td class="text-right">' + (d.quantidade || 0) + '</td>' +
                                     '<td>' + (d.bau_origem || '') + '</td>' +
                                     '<td>' + (d.bau_destino || '') + '</td>' +
@@ -610,6 +627,3 @@
         })();
     </script>
 @endsection
-
-
-

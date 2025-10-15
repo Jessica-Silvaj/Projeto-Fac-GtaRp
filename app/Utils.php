@@ -9,15 +9,11 @@ use Illuminate\Support\Facades\DB;
 
 class Utils extends Model
 {
-    public static function arrayPaginator($array, $url, $request, $perPage = 10)
+    public static function arrayPaginator($array, $url, $request, $perPage = 10, $pageName = 'page')
     {
-        $arrayTemp = array();
+        $arrayTemp = array_values(is_array($array) ? $array : iterator_to_array($array));
 
-        foreach ($array as $item) {
-            $arrayTemp[] = $item;
-        }
-
-        $page   = (int) request()->get('page', 1);
+        $page = max((int) ($request->get($pageName, 1)), 1);
         $offset = ($page * $perPage) - $perPage;
 
         return new LengthAwarePaginator(
@@ -25,7 +21,11 @@ class Utils extends Model
             count($arrayTemp),
             $perPage,
             $page,
-            ['path' => $url, 'query' => request()->query()]
+            [
+                'path' => $url,
+                'query' => $request->query(),
+                'pageName' => $pageName,
+            ]
         );
     }
 

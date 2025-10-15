@@ -8180,6 +8180,34 @@ table tbody .border-bottom-info td {
     color: #919aa3;
 }
 
+#estoque-alerta-wrapper .show-notification {
+    max-height: 18rem;
+    overflow-y: auto;
+}
+
+#estoque-alerta-wrapper .show-notification::-webkit-scrollbar {
+    width: 6px;
+}
+
+#estoque-alerta-wrapper .show-notification::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+}
+
+.alert-icon-wrapper {
+    display: inline-flex;
+    align-items: center;
+}
+
+.alert-icon-wrapper .notification-metric {
+    margin-left: 6px;
+    font-size: 0.65rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+    line-height: 1;
+    font-weight: 600;
+}
+
 .header-navbar .navbar-wrapper .navbar-container .header-notification .profile-notification {
     width: 17em;
 }
@@ -8225,7 +8253,7 @@ table tbody .border-bottom-info td {
     right: 10px;
     position: absolute;
     top: 14px;
-    padding: 4px;
+    padding: 1px;
 }
 
 .header-navbar .navbar-wrapper .header-search {

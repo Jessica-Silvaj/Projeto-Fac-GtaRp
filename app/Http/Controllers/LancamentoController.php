@@ -2,20 +2,22 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\Contracts\LancamentoServiceInterface;
-use App\Services\Contracts\LoggingServiceInterface;
 use App\Http\Requests\LancamentoRequest;
-use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use App\Models\Baus;
 use App\Models\Usuario;
+use App\Services\Contracts\LancamentoServiceInterface;
+use App\Services\Contracts\LoggingServiceInterface;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class LancamentoController extends Controller
 {
     public function __construct(
         private LancamentoServiceInterface $service,
         private LoggingServiceInterface $logger
-    ) {}
+    ) {
+    }
 
     public function index(Request $request)
     {
@@ -23,9 +25,9 @@ class LancamentoController extends Controller
         return view('controleBau.bau.lancamentos.index', compact('listLancamentos'));
     }
 
-    public function edit($id = 0)
+    public function edit(int $id = 0)
     {
-        $data = $this->service->dadosEdicao((int) $id);
+        $data = $this->service->dadosEdicao($id);
         return view('controleBau.bau.lancamentos.edit', $data);
     }
 
@@ -33,21 +35,28 @@ class LancamentoController extends Controller
     {
         try {
             $this->service->salvar($request->validated());
-            return redirect()->route('bau.lancamentos.index')->with('success', 'O lançamento foi salvo com sucesso.');
+            return redirect()->route('bau.lancamentos.index')->with('success', 'O lancamento foi salvo com sucesso.');
+        } catch (ValidationException $e) {
+            $mensagem = collect($e->errors())->flatten()->first();
+            return redirect()
+                ->back()
+                ->withInput()
+                ->withErrors($e->errors())
+                ->with('error', $mensagem ?? 'Falha ao validar os dados do lancamento.');
         } catch (\Throwable $e) {
             $this->logger->excecao($e);
-            return redirect()->back()->with('error', 'Ocorreu um erro ao salvar o lançamento');
+            return redirect()->back()->with('error', 'Ocorreu um erro ao salvar o lancamento.');
         }
     }
 
-    public function destroy($id)
+    public function destroy(int $id)
     {
         try {
-            $this->service->excluir((int) $id);
-            return redirect()->back()->with('success', 'O lançamento foi exclui­do com sucesso.');
+            $this->service->excluir($id);
+            return redirect()->back()->with('success', 'O lancamento foi excluido com sucesso.');
         } catch (\Throwable $e) {
             $this->logger->excecao($e);
-            return redirect()->back()->with('error', 'Ocorreu um erro ao excluir o lançamento');
+            return redirect()->back()->with('error', 'Ocorreu um erro ao excluir o lancamento.');
         }
     }
 
@@ -58,7 +67,9 @@ class LancamentoController extends Controller
         if ($term !== '') {
             $query->where('nome', 'LIKE', '%' . Str::upper($term) . '%');
         }
+
         $items = $query->orderBy('nome')->limit(20)->get(['id', 'nome']);
+
         return response()->json([
             'results' => $items->map(fn($i) => ['id' => $i->id, 'text' => $i->nome]),
         ]);
@@ -81,23 +92,26 @@ class LancamentoController extends Controller
 
         return response()->streamDownload(function () use ($dataset, $data, $modo, $granularidade) {
             $out = fopen('php://output', 'w');
-            // BOM for Excel UTF-8
             fprintf($out, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
             if ($dataset === 'top_entradas') {
-                fputcsv($out, ['Item', $modo === 'movimentos' ? 'Movimentações' : 'Quantidade', 'Tipo'], ';');
+                fputcsv($out, ['Item', $modo === 'movimentos' ? 'Movimentacoes' : 'Quantidade', 'Tipo'], ';');
                 foreach (($data['entradasPorItemTodos'] ?? $data['entradasPorItem'] ?? []) as $row) {
                     fputcsv($out, [$row['label'] ?? '', (int) ($row['value'] ?? 0), 'Entradas'], ';');
                 }
             } elseif ($dataset === 'top_saidas') {
-                fputcsv($out, ['Item', $modo === 'movimentos' ? 'Movimentações' : 'Quantidade', 'Tipo'], ';');
+                fputcsv($out, ['Item', $modo === 'movimentos' ? 'Movimentacoes' : 'Quantidade', 'Tipo'], ';');
                 foreach (($data['saidasPorItemTodos'] ?? $data['saidasPorItem'] ?? []) as $row) {
-                    fputcsv($out, [$row['label'] ?? '', (int) ($row['value'] ?? 0), 'Saídas'], ';');
+                    fputcsv($out, [$row['label'] ?? '', (int) ($row['value'] ?? 0), 'Saidas'], ';');
                 }
-            } else { // serie
-                fputcsv($out, ['Período', 'Entradas', 'Saídas', 'Métrica', 'Granularidade'], ';');
+            } else {
+                fputcsv($out, ['Periodo', 'Entradas', 'Saidas', 'Metrica', 'Granularidade'], ';');
                 foreach (($data['serie'] ?? []) as $row) {
-                    fputcsv($out, [$row['y'] ?? '', (int) ($row['entradas'] ?? 0), (int) ($row['saidas'] ?? 0), $modo, $granularidade], ';');
+                    fputcsv(
+                        $out,
+                        [$row['y'] ?? '', (int) ($row['entradas'] ?? 0), (int) ($row['saidas'] ?? 0), $modo, $granularidade],
+                        ';'
+                    );
                 }
             }
 
@@ -114,6 +128,7 @@ class LancamentoController extends Controller
         if ($dataset === '') {
             return response()->json($data);
         }
+
         $map = [
             'serie' => $data['serie'] ?? [],
             'serie_prev' => $data['seriePrev'] ?? [],
@@ -125,6 +140,7 @@ class LancamentoController extends Controller
             'top_baus_saidas' => $data['topBausSaidas'] ?? [],
             'detalhado' => $data['detalhes'] ?? [],
         ];
+
         return response()->json($map[$dataset] ?? []);
     }
 
@@ -133,4 +149,51 @@ class LancamentoController extends Controller
         $det = $this->service->detalhes($request);
         return response()->json($det);
     }
+
+    public function estoqueTotal(Request $request)
+    {
+        $data = $this->service->estoqueTotal($request);
+        return view('controleBau.bau.lancamentos.estoque-total', $data);
+    }
+
+    public function estoqueTotalCsv(Request $request)
+    {
+        $dataset = (string) $request->get('dataset', 'detalhes'); // detalhes|resumo_itens|resumo_baus
+        $data = $this->service->estoqueTotal($request);
+
+        $filename = 'estoque_total_' . $dataset . '_' . date('Ymd_His') . '.csv';
+
+        return response()->streamDownload(function () use ($dataset, $data) {
+            $out = fopen('php://output', 'w');
+            fprintf($out, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+            if ($dataset === 'resumo_itens') {
+                fputcsv($out, ['Item', 'Quantidade', 'Baus e Quantidades'], ';');
+                foreach (($data['resumoItens'] ?? []) as $row) {
+                    $locais = collect($row['locais'] ?? [])
+                        ->map(fn($l) => ($l['bau_nome'] ?? '') . ': ' . ($l['quantidade'] ?? 0))
+                        ->implode(' | ');
+                    fputcsv($out, [$row['item_nome'] ?? '', (int) ($row['quantidade'] ?? 0), $locais], ';');
+                }
+            } elseif ($dataset === 'resumo_baus') {
+                fputcsv($out, ['Bau', 'Quantidade', 'Itens e Quantidades'], ';');
+                foreach (($data['resumoBaus'] ?? []) as $row) {
+                    $itens = collect($row['itens_lista'] ?? [])
+                        ->map(fn($i) => ($i['item_nome'] ?? '') . ': ' . ($i['quantidade'] ?? 0))
+                        ->implode(' | ');
+                    fputcsv($out, [$row['bau_nome'] ?? '', (int) ($row['quantidade'] ?? 0), $itens], ';');
+                }
+            } else {
+                fputcsv($out, ['Item', 'Bau', 'Quantidade'], ';');
+                foreach (($data['detalhes'] ?? []) as $row) {
+                    fputcsv($out, [$row['item_nome'] ?? '', $row['bau_nome'] ?? '', (int) ($row['saldo'] ?? 0)], ';');
+                }
+            }
+
+            fclose($out);
+        }, $filename, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
+    }
 }
+

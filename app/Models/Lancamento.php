@@ -23,7 +23,12 @@ class Lancamento extends Model
         'bau_origem_id',
         'bau_destino_id',
         'observacao',
+        'fabricacao',
         'data_atribuicao',
+    ];
+
+    protected $casts = [
+        'fabricacao' => 'boolean',
     ];
 
     public function item()

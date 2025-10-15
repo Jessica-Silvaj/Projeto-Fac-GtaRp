@@ -37,6 +37,26 @@
                 </li>
             </ul>
             <ul class="nav-right">
+                @can('acesso', 'bau.lancamentos.anomalias')
+                    <li class="header-notification dropdown" id="estoque-alerta-wrapper">
+                        <a href="#!" class="waves-effect waves-light">
+                            <i class="ti-pulse" style="font-size:18px;"></i>
+                            <span class="badge bg-c-red badge-alerta" style="size:5px;" id="estoque-alerta-badge">0</span>
+                        </a>
+                        <ul class="show-notification" id="estoque-alerta-dropdown">
+                            <li>
+                                <h6>Estoques crí­ticos</h6>
+                                <label class="label label-warning">Monitoramento</label>
+                            </li>
+                            <li class="text-center text-muted py-2" id="estoque-alerta-empty">Carregando...</li>
+                            <li class="text-center py-2" data-role="panel-link">
+                                <a class="btn btn-sm btn-outline-secondary" href="{{ route('bau.lancamentos.anomalias') }}">
+                                    Abrir painel
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                @endcan
                 {{-- <li class="header-notification">
                     <a href="#!" class="waves-effect waves-light">
                         <i class="ti-bell"></i>
@@ -106,3 +126,125 @@
         </div>
     </div>
 </nav>
+@can('acesso', 'bau.lancamentos.anomalias')
+    @once
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                var badge = document.getElementById('estoque-alerta-badge');
+                var dropdown = document.getElementById('estoque-alerta-dropdown');
+                var empty = document.getElementById('estoque-alerta-empty');
+                if (!badge || !dropdown || !empty) return;
+                var panelLink = dropdown.querySelector('li[data-role="panel-link"]');
+
+                function atualizarBadge(valor) {
+                    var total = Number(valor) || 0;
+                    var texto = total > 99 ? '99+' : (total > 0 ? String(total) : '0');
+                    badge.textContent = texto;
+                    badge.setAttribute('aria-label', texto + ' alerta(s) de estoque');
+                }
+
+                atualizarBadge(0);
+
+                fetch('{{ route('bau.lancamentos.anomalias.navbar') }}', {
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(function(resp) {
+                        if (!resp.ok) throw new Error('Falha ao carregar alerta');
+                        return resp.json();
+                    })
+                    .then(function(data) {
+                        var count = Number(data && data.count) || 0;
+                        var items = Array.isArray(data && data.items) ? data.items : [];
+
+                        atualizarBadge(count);
+
+                        dropdown.querySelectorAll('li.alert-item').forEach(function(li) {
+                            li.remove();
+                        });
+
+                        if (!items.length) {
+                            empty.textContent = 'Nenhum item critico no momento.';
+                            empty.style.display = '';
+                            return;
+                        }
+
+                        empty.style.display = 'none';
+
+                        var iconConfig = {
+                            'Negativo': { icon: 'ti-arrow-down', bg: 'bg-c-red', badge: 'badge-danger' },
+                            'Critico': { icon: 'ti-flag', bg: 'bg-c-blue', badge: 'badge-primary' },
+                            'Bau limite': { icon: 'ti-layers-alt', bg: 'bg-c-yellow', badge: 'badge-warning' },
+                            'Movimento atipico': { icon: 'ti-pulse', bg: 'bg-c-purple', badge: 'badge-info' }
+                        };
+                        var defaultConfig = { icon: 'ti-info-alt', bg: 'bg-c-blue', badge: 'badge-secondary' };
+
+                        items.forEach(function(item) {
+                            var li = document.createElement('li');
+                            li.className = 'alert-item waves-effect waves-light';
+
+                            var tipo = item && item.tipo ? item.tipo : 'Alerta';
+                            var iconData = iconConfig[tipo] || defaultConfig;
+                            var iconClass = iconData.icon + ' ' + iconData.bg;
+                            var itemNome = item && item.item ? item.item : '';
+                            var origem = item && item.bau ? item.bau : '';
+                            var descricaoBruta = item && item.descricao ? String(item.descricao) : '';
+                            var descricao = descricaoBruta ? ': ' + descricaoBruta : '';
+
+                            var badgeTexto = '';
+                            if (tipo === 'Bau limite') {
+                                var percMatch = descricaoBruta.replace(',', '.').match(/[\d.]+%/);
+                                if (percMatch && percMatch[0]) {
+                                    badgeTexto = percMatch[0].replace('.', ',');
+                                }
+                            } else if (tipo === 'Critico') {
+                                var saldoMatch = descricaoBruta.match(/Saldo:\s*(-?\d+)/i);
+                                var limiteMatch = descricaoBruta.match(/Limite:\s*(\d+)/i);
+                                if (saldoMatch && limiteMatch) {
+                                    badgeTexto = saldoMatch[1] + '/' + limiteMatch[1];
+                                }
+                            } else if (tipo === 'Negativo') {
+                                var negativoMatch = descricaoBruta.match(/-?\d+/);
+                                if (negativoMatch) {
+                                    badgeTexto = negativoMatch[0];
+                                }
+                            } else if (tipo === 'Movimento atipico') {
+                                var qtdMatch = descricaoBruta.match(/-?\d+/);
+                                if (qtdMatch) {
+                                    badgeTexto = qtdMatch[0];
+                                }
+                            }
+
+                            var badgeHtml = badgeTexto
+                                ? '<span class="badge notification-metric ' + iconData.badge + '">' + badgeTexto + '</span>'
+                                : '';
+
+                            li.innerHTML =
+                                '<div class="media">' +
+                                '<div class="media-left align-self-center mr-2 alert-icon-wrapper">' +
+                                '<i class="' + iconClass + '" style="color:#fff;padding:8px;border-radius:50%;font-size:12px;"></i>' +
+                                badgeHtml +
+                                '</div>' +
+                                '<div class="media-body">' +
+                                '<h5 class="notification-user mb-0">' + tipo + '</h5>' +
+                                '<small class="text-muted d-block">' + itemNome + '</small>' +
+                                '<span class="notification-time">' + origem + descricao + '</span>' +
+                                '</div>' +
+                                '</div>';
+
+                            if (panelLink) {
+                                dropdown.insertBefore(li, panelLink);
+                            } else {
+                                dropdown.appendChild(li);
+                            }
+                        });
+                    })
+                    .catch(function() {
+                        empty.textContent = 'Nao foi possivel carregar as informacoes.';
+                        empty.style.display = '';
+                    });
+            });
+        </script>
+    @endonce
+@endcan

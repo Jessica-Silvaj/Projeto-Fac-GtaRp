@@ -27,7 +27,7 @@
                     <input id="id" name="id" type="hidden" value="{{ old('id', $lancamento->id) }}">
 
                     <div class="form-row">
-                        <div class="form-group form-default form-static-label col-md-6">
+                        <div class="form-group form-default form-static-label col-md-5">
                             <select name="itens_id" id="itens_id"
                                 class="form-control select2 @error('itens_id') is-invalid @enderror"
                                 data-ajax-url="{{ route('administracao.fabricacao.produtos.itens.search') }}"
@@ -44,7 +44,7 @@
                                 <small class="text-danger d-block mt-1">{{ $message }}</small>
                             @enderror
                         </div>
-                        <div class="form-group form-default form-static-label col-md-3">
+                        <div class="form-group form-default form-static-label col-md-2">
                             <select name="tipo" id="tipo"
                                 class="form-control select2 @error('tipo') is-invalid @enderror">
                                 <option value="">Selecione</option>
@@ -65,6 +65,21 @@
                             <span class="form-bar"></span>
                             <label for="quantidade" class="float-label">Quantidade</label>
                             @error('quantidade')
+                                <small class="text-danger d-block mt-1">{{ $message }}</small>
+                            @enderror
+                        </div>
+                        <div class="form-group form-default form-static-label col-md-2" id="grupo-fabricacao">
+                            @php
+                                $fabricacaoValor = (int) old('fabricacao', $lancamento->fabricacao ?? 0);
+                            @endphp
+                            <select name="fabricacao" id="fabricacao"
+                                class="form-control select2 @error('fabricacao') is-invalid @enderror">
+                                <option value="0" @selected($fabricacaoValor === 0)>NAO</option>
+                                <option value="1" @selected($fabricacaoValor === 1)>SIM</option>
+                            </select>
+                            <span class="form-bar"></span>
+                            <label for="fabricacao" class="float-label">Fabricacão</label>
+                            @error('fabricacao')
                                 <small class="text-danger d-block mt-1">{{ $message }}</small>
                             @enderror
                         </div>
@@ -171,4 +186,3 @@
         });
     </script>
 @endsection
-

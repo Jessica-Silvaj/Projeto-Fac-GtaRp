@@ -19,6 +19,7 @@ class LancamentoRequest extends FormRequest
             'tipo' => ['required','in:ENTRADA,SAIDA,TRANSFERENCIA'],
             'quantidade' => ['required','integer','min:1'],
             'observacao' => ['nullable','string','max:255'],
+            'fabricacao' => ['nullable','boolean'],
             'bau_origem_id' => ['nullable','integer','exists:BAUS,id'],
             'bau_destino_id' => ['nullable','integer','exists:BAUS,id'],
         ];

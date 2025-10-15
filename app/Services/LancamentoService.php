@@ -6,6 +6,7 @@ use App\Models\Lancamento;
 use App\Models\Itens;
 use App\Models\Baus;
 use App\Models\Usuario;
+use App\Models\Produto;
 use App\Services\Contracts\LancamentoServiceInterface;
 use App\Services\Contracts\LoggingServiceInterface;
 use App\Utils;
@@ -16,6 +17,7 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use Illuminate\Validation\ValidationException;
 
 class LancamentoService implements LancamentoServiceInterface
 {
@@ -49,6 +51,7 @@ class LancamentoService implements LancamentoServiceInterface
             $itensId = (int) ($dados['itens_id'] ?? 0);
             $quantidade = (int) ($dados['quantidade'] ?? 0);
             $observacao = Str::upper($dados['observacao'] ?? '');
+            $fabricacao = filter_var($dados['fabricacao'] ?? false, FILTER_VALIDATE_BOOLEAN) ? 1 : 0;
 
             // Normaliza origem/destino conforme tipo
             $origem = $dados['bau_origem_id'] ?? null;
@@ -70,6 +73,7 @@ class LancamentoService implements LancamentoServiceInterface
                     'bau_origem_id' => $origem,
                     'bau_destino_id' => $destino,
                     'observacao' => $observacao,
+                    'fabricacao' => $fabricacao,
                 ]);
                 $this->logger->cadastro('LANCAMENTO', 'INSERIR', 'TIPO: ' . $obj->tipo . ', QTD: ' . $obj->quantidade, $obj->id);
             } else {
@@ -82,12 +86,135 @@ class LancamentoService implements LancamentoServiceInterface
                     'bau_origem_id' => $origem,
                     'bau_destino_id' => $destino,
                     'observacao' => $observacao ?: $obj->observacao,
+                    'fabricacao' => $fabricacao,
                 ]);
                 $this->logger->cadastro('LANCAMENTO', 'ATUALIZAR', 'TIPO: ' . $obj->tipo . ', QTD: ' . $obj->quantidade, $obj->id);
             }
 
+            $this->registrarMovimentosComponentes($obj, (bool) $fabricacao);
+
             return $obj;
         });
+    }
+
+    private function registrarMovimentosComponentes(Lancamento $principal, bool $fabricacaoAtivo): void
+    {
+        $prefixo = 'FABRICACÃO AUTOMATICA ' . $principal->id;
+
+        Lancamento::query()
+            ->where('observacao', 'like', $prefixo . '%')
+            ->delete();
+
+        if (!$fabricacaoAtivo) {
+            return;
+        }
+
+        $principal->loadMissing('item');
+        $itemPrincipal = $principal->item ?: Itens::find($principal->itens_id);
+        if (!$itemPrincipal) {
+            return;
+        }
+
+        $produto = Produto::query()
+            ->whereRaw('UPPER(nome) = ?', [Str::upper((string) $itemPrincipal->nome)])
+            ->with(['itens' => fn($q) => $q->withPivot('quantidade')])
+            ->first();
+
+        if (!$produto || $produto->itens->isEmpty()) {
+            return;
+        }
+
+        $saidaPorLote = (int) ($produto->quantidade ?? 0);
+        if ($saidaPorLote <= 0) {
+            $saidaPorLote = 1;
+        }
+
+        $fator = $principal->quantidade / $saidaPorLote;
+        if ($fator <= 0) {
+            return;
+        }
+
+        $tipoPrincipal = strtoupper((string) $principal->tipo);
+        $bauConsumo = 0;
+        if ($tipoPrincipal === 'ENTRADA') {
+            $bauConsumo = (int) $principal->bau_destino_id;
+        } elseif ($tipoPrincipal === 'SAIDA') {
+            $bauConsumo = (int) $principal->bau_origem_id;
+        } elseif ($tipoPrincipal === 'TRANSFERENCIA') {
+            $bauConsumo = (int) $principal->bau_origem_id ?: (int) $principal->bau_destino_id;
+        }
+        if ($bauConsumo <= 0) {
+            $bauConsumo = (int) ($principal->bau_origem_id ?: $principal->bau_destino_id ?: 0);
+        }
+        if ($bauConsumo <= 0) {
+            return;
+        }
+
+        $itemNome = (string) $itemPrincipal->nome;
+        $bauRegistro = Baus::find($bauConsumo);
+        $consumosComponentes = [];
+
+        foreach ($produto->itens as $componente) {
+            $quantidadeComponente = (int) ($componente->pivot->quantidade ?? 0);
+            if ($quantidadeComponente <= 0) {
+                continue;
+            }
+
+            $consumo = (int) ceil($quantidadeComponente * $fator);
+            if ($consumo <= 0) {
+                continue;
+            }
+
+            $saldoAtual = $this->obterSaldoItemNoBau((int) $componente->id, $bauConsumo);
+            if ($saldoAtual < $consumo) {
+                $mensagem = sprintf(
+                    '%s não possui quantidade suficiente do item %s para fabricar %d %s. Necessário %d, disponivel %d.',
+                    $bauRegistro->nome ?? ('#' . $bauConsumo),
+                    (string) $componente->nome,
+                    (int) $principal->quantidade,
+                    $itemNome,
+                    $consumo,
+                    $saldoAtual
+                );
+                throw ValidationException::withMessages(['fabricacao' => $mensagem]);
+            }
+
+            $consumosComponentes[] = [
+                'id' => (int) $componente->id,
+                'quantidade' => $consumo,
+                'nome' => (string) $componente->nome,
+            ];
+        }
+
+        foreach ($consumosComponentes as $consumoInfo) {
+            $observacaoDetalhe = sprintf(
+                'FABRICACÃO DE %d %s ➡️ %s',
+                (int) $principal->quantidade,
+                $itemNome,
+                $consumoInfo['nome']
+            );
+
+            $observacao = Str::upper(Str::limit($prefixo . ' | ' . $observacaoDetalhe, 255, ''));
+
+            $lancamentoComponente = Lancamento::create([
+                'id' => Utils::getSequence(Lancamento::$sequence),
+                'itens_id' => $consumoInfo['id'],
+                'tipo' => 'SAIDA',
+                'quantidade' => $consumoInfo['quantidade'],
+                'usuario_id' => (int) $principal->usuario_id,
+                'bau_origem_id' => $bauConsumo,
+                'bau_destino_id' => null,
+                'observacao' => $observacao,
+                'fabricacao' => 0,
+            ]);
+
+            $this->logger->cadastro(
+                'LANCAMENTO',
+                'INSERIR',
+                'FABRICACAO COMPONENTE AUTO: ' . $observacao,
+                $lancamentoComponente->id
+            );
+        }
     }
 
     public function excluir(int $id): void
@@ -112,19 +239,43 @@ class LancamentoService implements LancamentoServiceInterface
         $bauOrigemId = (int) ($request->get('bau_origem_id') ?? 0);
         $bauDestinoId = (int) ($request->get('bau_destino_id') ?? 0);
         $usuarioFiltroId = (int) ($request->get('usuario_id') ?? 0);
+        $bauFiltroAny = (int) ($request->get('bau_id') ?? 0);
+        if ($bauOrigemId > 0 && $bauDestinoId > 0 && $bauOrigemId === $bauDestinoId) {
+            $bauFiltroAny = $bauOrigemId;
+        }
+        if ($bauFiltroAny > 0) {
+            if ($bauOrigemId <= 0) {
+                $bauOrigemId = $bauFiltroAny;
+            }
+            if ($bauDestinoId <= 0) {
+                $bauDestinoId = $bauFiltroAny;
+            }
+        }
 
         if (!$inicio || !$fim) {
             $fim = Carbon::now()->toDateString();
             $inicio = Carbon::now()->subDays(30)->toDateString();
         }
 
+        $aplicarFiltroBau = function ($query) use ($bauFiltroAny, $bauOrigemId, $bauDestinoId) {
+            return $query
+                ->when($bauFiltroAny > 0, function ($q) use ($bauFiltroAny) {
+                    $q->where(function ($sub) use ($bauFiltroAny) {
+                        $sub->where('bau_origem_id', $bauFiltroAny)
+                            ->orWhere('bau_destino_id', $bauFiltroAny);
+                    });
+                })
+                ->when($bauFiltroAny === 0 && $bauOrigemId > 0, fn($q) => $q->where('bau_origem_id', $bauOrigemId))
+                ->when($bauFiltroAny === 0 && $bauDestinoId > 0, fn($q) => $q->where('bau_destino_id', $bauDestinoId));
+        };
+
         $agregado = $isMovimentos ? 'COUNT(*)' : 'SUM(quantidade)';
-        $baseQuery = Lancamento::query()
-            ->select(DB::raw('DATE(data_atribuicao) as dia'), DB::raw($agregado . ' as total'))
-            ->when($itensIdFiltro > 0, fn($q) => $q->where('itens_id', $itensIdFiltro))
-            ->when($bauOrigemId > 0, fn($q) => $q->where('bau_origem_id', $bauOrigemId))
-            ->when($bauDestinoId > 0, fn($q) => $q->where('bau_destino_id', $bauDestinoId))
-            ->when($usuarioFiltroId > 0, fn($q) => $q->where('usuario_id', $usuarioFiltroId))
+        $baseQuery = $aplicarFiltroBau(
+            Lancamento::query()
+                ->select(DB::raw('DATE(data_atribuicao) as dia'), DB::raw($agregado . ' as total'))
+                ->when($itensIdFiltro > 0, fn($q) => $q->where('itens_id', $itensIdFiltro))
+                ->when($usuarioFiltroId > 0, fn($q) => $q->where('usuario_id', $usuarioFiltroId))
+        )
             ->whereDate('data_atribuicao', '>=', $inicio)
             ->whereDate('data_atribuicao', '<=', $fim)
             ->groupBy(DB::raw('DATE(data_atribuicao)'))
@@ -207,12 +358,12 @@ class LancamentoService implements LancamentoServiceInterface
         }
 
         // Top itens (donut) para entradas e saídas no período
-        $entradasPorItemRows = Lancamento::query()
-            ->select('itens_id', DB::raw($agregado . ' as total'))
-            ->when($itensIdFiltro > 0, fn($q) => $q->where('itens_id', $itensIdFiltro))
-            ->when($bauOrigemId > 0, fn($q) => $q->where('bau_origem_id', $bauOrigemId))
-            ->when($bauDestinoId > 0, fn($q) => $q->where('bau_destino_id', $bauDestinoId))
-            ->when($usuarioFiltroId > 0, fn($q) => $q->where('usuario_id', $usuarioFiltroId))
+        $entradasPorItemRows = $aplicarFiltroBau(
+            Lancamento::query()
+                ->select('itens_id', DB::raw($agregado . ' as total'))
+                ->when($itensIdFiltro > 0, fn($q) => $q->where('itens_id', $itensIdFiltro))
+                ->when($usuarioFiltroId > 0, fn($q) => $q->where('usuario_id', $usuarioFiltroId))
+        )
             ->whereIn('tipo', ['ENTRADA', 'TRANSFERENCIA'])
             ->whereDate('data_atribuicao', '>=', $inicio)
             ->whereDate('data_atribuicao', '<=', $fim)
@@ -241,12 +392,12 @@ class LancamentoService implements LancamentoServiceInterface
             $entradasPorItem[] = ['label' => 'Outros', 'value' => $outrosValor];
         }
 
-        $saidasPorItemRows = Lancamento::query()
-            ->select('itens_id', DB::raw($agregado . ' as total'))
-            ->when($itensIdFiltro > 0, fn($q) => $q->where('itens_id', $itensIdFiltro))
-            ->when($bauOrigemId > 0, fn($q) => $q->where('bau_origem_id', $bauOrigemId))
-            ->when($bauDestinoId > 0, fn($q) => $q->where('bau_destino_id', $bauDestinoId))
-            ->when($usuarioFiltroId > 0, fn($q) => $q->where('usuario_id', $usuarioFiltroId))
+        $saidasPorItemRows = $aplicarFiltroBau(
+            Lancamento::query()
+                ->select('itens_id', DB::raw($agregado . ' as total'))
+                ->when($itensIdFiltro > 0, fn($q) => $q->where('itens_id', $itensIdFiltro))
+                ->when($usuarioFiltroId > 0, fn($q) => $q->where('usuario_id', $usuarioFiltroId))
+        )
             ->whereIn('tipo', ['SAIDA', 'TRANSFERENCIA'])
             ->whereDate('data_atribuicao', '>=', $inicio)
             ->whereDate('data_atribuicao', '<=', $fim)
@@ -311,6 +462,162 @@ class LancamentoService implements LancamentoServiceInterface
         return compact('inicio', 'fim', 'entradas', 'saidas', 'serie', 'saldoSerie', 'entradasPorItem', 'saidasPorItem', 'entradasPorItemTodos', 'saidasPorItemTodos', 'totais', 'itensIdFiltro', 'modo', 'granularidade', 'itemSelecionado', 'bauOrigemId', 'bauDestinoId', 'usuarioFiltroId', 'bauOrigemSelecionado', 'bauDestinoSelecionado', 'usuariosBau');
     }
 
+    public function estoqueTotal(Request $request): array
+    {
+        $inicio = $this->normalizarData($request->get('inicio'));
+        $fim = $this->normalizarData($request->get('fim'));
+        $itensIdFiltro = (int) ($request->get('itens_id') ?? 0);
+        $bauFiltroId = (int) ($request->get('bau_id') ?? 0);
+        $usuarioFiltroId = (int) ($request->get('usuario_id') ?? 0);
+
+        $aplicarFiltros = function ($query) use ($inicio, $fim, $itensIdFiltro, $usuarioFiltroId) {
+            return $query
+                ->when($itensIdFiltro > 0, fn($q) => $q->where('itens_id', $itensIdFiltro))
+                ->when($usuarioFiltroId > 0, fn($q) => $q->where('usuario_id', $usuarioFiltroId))
+                ->when($inicio, fn($q) => $q->whereDate('data_atribuicao', '>=', $inicio))
+                ->when($fim, fn($q) => $q->whereDate('data_atribuicao', '<=', $fim));
+        };
+
+        $movimentosEntrada = $aplicarFiltros(
+            Lancamento::query()
+                ->select([
+                    'itens_id',
+                    DB::raw('bau_destino_id as bau_id'),
+                    DB::raw('quantidade as movimento'),
+                    DB::raw('data_atribuicao as data_ref'),
+                ])
+                ->whereIn('tipo', ['ENTRADA', 'TRANSFERENCIA'])
+                ->whereNotNull('bau_destino_id')
+        );
+
+        $movimentosSaida = $aplicarFiltros(
+            Lancamento::query()
+                ->select([
+                    'itens_id',
+                    DB::raw('bau_origem_id as bau_id'),
+                    DB::raw('-quantidade as movimento'),
+                    DB::raw('data_atribuicao as data_ref'),
+                ])
+                ->whereIn('tipo', ['SAIDA', 'TRANSFERENCIA'])
+                ->whereNotNull('bau_origem_id')
+        );
+
+        $movimentosUnion = $movimentosEntrada->unionAll($movimentosSaida);
+
+        $saldosRaw = DB::query()
+            ->fromSub($movimentosUnion, 'movimentos')
+            ->select('itens_id', 'bau_id', DB::raw('SUM(movimento) as saldo'))
+            ->whereNotNull('bau_id')
+            ->groupBy('itens_id', 'bau_id')
+            ->when($bauFiltroId > 0, fn($q) => $q->where('bau_id', $bauFiltroId))
+            ->havingRaw('SUM(movimento) > 0')
+            ->orderBy('itens_id')
+            ->get();
+
+        $itensIds = $saldosRaw->pluck('itens_id')->filter()->unique()->values();
+        $bauIds = $saldosRaw->pluck('bau_id')->filter()->unique()->values();
+
+        $itensMap = $itensIds->isEmpty()
+            ? collect()
+            : Itens::whereIn('id', $itensIds)->get()->keyBy('id');
+        $bausMap = $bauIds->isEmpty()
+            ? collect()
+            : Baus::whereIn('id', $bauIds)->get()->keyBy('id');
+
+        $detalhes = $saldosRaw->map(function ($row) use ($itensMap, $bausMap) {
+            $item = $itensMap->get($row->itens_id);
+            $bau = $bausMap->get($row->bau_id);
+            return [
+                'itens_id' => (int) $row->itens_id,
+                'item_nome' => $item->nome ?? ('Item #' . $row->itens_id),
+                'bau_id' => (int) $row->bau_id,
+                'bau_nome' => $bau->nome ?? ('Bau #' . $row->bau_id),
+                'saldo' => (int) $row->saldo,
+            ];
+        })
+            ->filter(fn($row) => ($row['saldo'] ?? 0) > 0)
+            ->sortBy(function ($row) {
+                return strtoupper($row['item_nome']) . '|' . strtoupper($row['bau_nome']);
+            })->values();
+
+        $resumoItensCollection = $detalhes->groupBy('itens_id')->map(function ($grupo) {
+            return [
+                'itens_id' => $grupo->first()['itens_id'],
+                'item_nome' => $grupo->first()['item_nome'],
+                'quantidade' => $grupo->sum('saldo'),
+                'baus' => $grupo->count(),
+                'locais' => $grupo->map(function ($det) {
+                    return [
+                        'bau_id' => $det['bau_id'],
+                        'bau_nome' => $det['bau_nome'],
+                        'quantidade' => $det['saldo'],
+                    ];
+                })->sortByDesc('quantidade')->values()->all(),
+            ];
+        });
+        $resumoItens = $resumoItensCollection->values()->sortByDesc('quantidade')->values()->all();
+
+        $resumoBausCollection = $detalhes->groupBy('bau_id')->map(function ($grupo) {
+            return [
+                'bau_id' => $grupo->first()['bau_id'],
+                'bau_nome' => $grupo->first()['bau_nome'],
+                'quantidade' => $grupo->sum('saldo'),
+                'itens' => $grupo->count(),
+                'itens_lista' => $grupo->map(function ($det) {
+                    return [
+                        'itens_id' => $det['itens_id'],
+                        'item_nome' => $det['item_nome'],
+                        'quantidade' => $det['saldo'],
+                    ];
+                })->sortByDesc('quantidade')->values()->all(),
+            ];
+        });
+        $resumoBausAll = $resumoBausCollection->values()->sortByDesc('quantidade')->values();
+        $resumoBaus = Utils::arrayPaginator(
+            $resumoBausAll->all(),
+            route('bau.lancamentos.estoque'),
+            $request,
+            10
+        );
+
+        $quantidadeTotal = $detalhes->sum(fn($d) => max(0, $d['saldo']));
+        $totais = [
+            'quantidade_total' => $quantidadeTotal,
+            'itens_unicos' => count($resumoItens),
+            'baus_utilizados' => $resumoBausAll->count(),
+        ];
+
+        $itemSelecionado = null;
+        if ($itensIdFiltro > 0) {
+            $it = $itensMap->get($itensIdFiltro) ?? Itens::find($itensIdFiltro);
+            if ($it) {
+                $itemSelecionado = ['id' => $it->id, 'nome' => $it->nome];
+            }
+        }
+
+        $bauSelecionado = null;
+        if ($bauFiltroId > 0) {
+            $bau = $bausMap->get($bauFiltroId) ?? Baus::find($bauFiltroId);
+            if ($bau) {
+                $bauSelecionado = ['id' => $bau->id, 'nome' => $bau->nome];
+            }
+        }
+
+        return [
+            'inicio' => $inicio,
+            'fim' => $fim,
+            'itensIdFiltro' => $itensIdFiltro,
+            'bauFiltroId' => $bauFiltroId,
+            'usuarioFiltroId' => $usuarioFiltroId,
+            'itemSelecionado' => $itemSelecionado,
+            'bauSelecionado' => $bauSelecionado,
+            'detalhes' => $detalhes->values()->all(),
+            'resumoItens' => $resumoItens,
+            'resumoBaus' => $resumoBaus,
+            'totais' => $totais,
+        ];
+    }
+
     public function detalhes(Request $request): array
     {
         $inicio = $this->normalizarData($request->get('inicio'));
@@ -359,14 +666,30 @@ class LancamentoService implements LancamentoServiceInterface
 
         $bauOrigemId = (int) ($request->get('bau_origem_id') ?? 0);
         $bauDestinoId = (int) ($request->get('bau_destino_id') ?? 0);
+        $bauFiltroAny = (int) ($request->get('bau_id') ?? 0);
+        if ($bauOrigemId > 0 && $bauDestinoId > 0 && $bauOrigemId === $bauDestinoId) {
+            $bauFiltroAny = $bauOrigemId;
+        }
         $usuarioFiltroId = (int) ($request->get('usuario_id') ?? 0);
 
-        $q = Lancamento::query()
-            ->with(['item', 'bauOrigem', 'bauDestino', 'usuario'])
-            ->whereIn('tipo', $tiposReq)
-            ->when(!empty($itensIds), fn($q) => $q->whereIn('itens_id', $itensIds))
-            ->when($bauOrigemId > 0, fn($q) => $q->where('bau_origem_id', $bauOrigemId))
-            ->when($bauDestinoId > 0, fn($q) => $q->where('bau_destino_id', $bauDestinoId))
+        $aplicarFiltroBau = function ($query) use ($bauFiltroAny, $bauOrigemId, $bauDestinoId) {
+            return $query
+                ->when($bauFiltroAny > 0, function ($q) use ($bauFiltroAny) {
+                    $q->where(function ($sub) use ($bauFiltroAny) {
+                        $sub->where('bau_origem_id', $bauFiltroAny)
+                            ->orWhere('bau_destino_id', $bauFiltroAny);
+                    });
+                })
+                ->when($bauFiltroAny === 0 && $bauOrigemId > 0, fn($q) => $q->where('bau_origem_id', $bauOrigemId))
+                ->when($bauFiltroAny === 0 && $bauDestinoId > 0, fn($q) => $q->where('bau_destino_id', $bauDestinoId));
+        };
+
+        $q = $aplicarFiltroBau(
+            Lancamento::query()
+                ->with(['item', 'bauOrigem', 'bauDestino', 'usuario'])
+                ->whereIn('tipo', $tiposReq)
+                ->when(!empty($itensIds), fn($q) => $q->whereIn('itens_id', $itensIds))
+        )
             ->when($usuarioFiltroId > 0, fn($q) => $q->where('usuario_id', $usuarioFiltroId))
             ->whereDate('data_atribuicao', '>=', $start)
             ->whereDate('data_atribuicao', '<=', $end)
@@ -387,6 +710,7 @@ class LancamentoService implements LancamentoServiceInterface
                 'bau_destino' => optional($r->bauDestino)->nome,
                 'usuario' => optional($r->usuario)->nome,
                 'observacao' => (string) $r->observacao,
+                'fabricacao_auto' => Str::startsWith(Str::upper((string) $r->observacao), 'FABRICACAO AUTO'),
             ];
         })->values()->all();
 
@@ -413,5 +737,26 @@ class LancamentoService implements LancamentoServiceInterface
         } catch (\Throwable $e) {
             return null;
         }
+    }
+
+    private function obterSaldoItemNoBau(int $itemId, int $bauId): int
+    {
+        if ($itemId <= 0 || $bauId <= 0) {
+            return 0;
+        }
+
+        $entradas = Lancamento::query()
+            ->whereIn('tipo', ['ENTRADA', 'TRANSFERENCIA'])
+            ->where('itens_id', $itemId)
+            ->where('bau_destino_id', $bauId)
+            ->sum('quantidade');
+
+        $saidas = Lancamento::query()
+            ->whereIn('tipo', ['SAIDA', 'TRANSFERENCIA'])
+            ->where('itens_id', $itemId)
+            ->where('bau_origem_id', $bauId)
+            ->sum('quantidade');
+
+        return (int) ($entradas - $saidas);
     }
 }

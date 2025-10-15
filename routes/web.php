@@ -12,6 +12,7 @@ use App\Http\Controllers\LancamentoController;
 use App\Http\Controllers\PerfilController;
 use App\Http\Controllers\PermissoesController;
 use App\Http\Controllers\SituacaoController;
+use App\Http\Controllers\SolicitacaoDiscordController;
 use App\Http\Controllers\UsuarioController;
 use App\Models\Situacao;
 
@@ -91,25 +92,42 @@ Route::middleware('auth.check')->group(function () {
 
         //  -- SISTEMA
         //  --- Permissões
-        Route::get("/administracao/sistema/permissoes/index", [PermissoesController::class, 'index'])->name('administracao.sistema.permissoes.index');
-        Route::get("/administracao/sistema/permissoes/edit/{id?}", [PermissoesController::class, 'edit'])->name('administracao.sistema.permissoes.edit');
-        Route::delete('/administracao/sistema/permissoes/delete/{id}', [PermissoesController::class, 'destroy'])->name('administracao.sistema.permissoes.destroy');
-        Route::post("/administracao/sistema/permissoes/store", [PermissoesController::class, 'store'])->name('administracao.sistema.permissoes.store');
+        Route::prefix('administracao/sistema')->name('administracao.sistema.')->group(function () {
+            Route::get('permissoes/index', [PermissoesController::class, 'index'])->name('permissoes.index');
+            Route::get('permissoes/edit/{id?}', [PermissoesController::class, 'edit'])->name('permissoes.edit');
+            Route::delete('permissoes/delete/{id}', [PermissoesController::class, 'destroy'])->name('permissoes.destroy');
+            Route::post('permissoes/store', [PermissoesController::class, 'store'])->name('permissoes.store');
+            Route::get('configuracao/anomalia', [\App\Http\Controllers\Administracao\Sistema\ConfiguracaoAnomaliaController::class, 'edit'])->name('configuracao.anomalia.edit');
+            Route::post('configuracao/anomalia', [\App\Http\Controllers\Administracao\Sistema\ConfiguracaoAnomaliaController::class, 'update'])->name('configuracao.anomalia.update');
+        });
     });
 
     // CONTROLE BAU (fora do admin/perm) - tipo painel
-    Route::prefix('bau/lancamentos')->name('bau.lancamentos.')->group(function () {
+        Route::prefix('bau/lancamentos')->name('bau.lancamentos.')->group(function () {
         Route::get('index', [LancamentoController::class, 'index'])->name('index');
         Route::get('edit/{id?}', [LancamentoController::class, 'edit'])->name('edit');
         Route::post('store', [LancamentoController::class, 'store'])->name('store');
         Route::delete('delete/{id}', [LancamentoController::class, 'destroy'])->name('destroy');
         // Busca de baús (AJAX) para selects do módulo
         Route::get('bau/baus/search', [LancamentoController::class, 'searchBaus'])->name('bau.baus.search');
+        Route::prefix('solicitacoes')->name('solicitacoes.')->group(function () {
+            Route::get('/', [SolicitacaoDiscordController::class, 'index'])->name('index');
+            Route::get('{solicitacao}/editar', [SolicitacaoDiscordController::class, 'edit'])->name('edit');
+            Route::put('{solicitacao}', [SolicitacaoDiscordController::class, 'update'])->name('update');
+            Route::post('{solicitacao}/aprovar', [SolicitacaoDiscordController::class, 'aprovar'])->name('aprovar');
+            Route::post('{solicitacao}/rejeitar', [SolicitacaoDiscordController::class, 'rejeitar'])->name('rejeitar');
+        });
         Route::get('historico', [LancamentoController::class, 'historico'])->name('historico');
         Route::get('historico/csv', [LancamentoController::class, 'historicoCsv'])->name('historico.csv');
         Route::get('historico/json', [LancamentoController::class, 'historicoJson'])->name('historico.json');
         Route::get('historico/detalhes', [LancamentoController::class, 'historicoDetalhes'])->name('historico.detalhes');
+        Route::get('estoque-total', [LancamentoController::class, 'estoqueTotal'])->name('estoque');
+        Route::get('estoque-total/csv', [LancamentoController::class, 'estoqueTotalCsv'])->name('estoque.csv');
+        Route::get('anomalias', [\App\Http\Controllers\AnomaliaController::class, 'index'])->name('anomalias');
+        Route::get('anomalias/navbar', [\App\Http\Controllers\AnomaliaController::class, 'navbar'])->name('anomalias.navbar');
     });
 });
 
 require __DIR__ . '/auth.php';
+
+

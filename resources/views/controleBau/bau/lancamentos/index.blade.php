@@ -1,4 +1,7 @@
 @extends('layouts.master', ['titulo' => 'Lançamentos', 'subtitulo' => 'Entradas, saídas e transferências'])
+@php
+    use Illuminate\Support\Str;
+@endphp
 @section('conteudo')
     <div class="col-sm-12">
         <div class="card">
@@ -83,10 +86,21 @@
                         </thead>
                         <tbody>
                             @forelse ($listLancamentos as $idx)
+                                @php
+                                    $fabricacaoAuto = Str::startsWith(
+                                        Str::upper((string) ($idx->observacao ?? '')),
+                                        'FABRICACÃO AUTOMATICA',
+                                    );
+                                @endphp
                                 <tr>
                                     <td class="text-left">
                                         {{ \Carbon\Carbon::parse($idx->data_atribuicao)->format('d/m/Y H:i') }}</td>
-                                    <td class="text-left">{{ optional($idx->item)->nome }}</td>
+                                    <td class="text-left">
+                                        {{ optional($idx->item)->nome }}
+                                        @if ($fabricacaoAuto)
+                                            <span class="badge badge-warning ml-1">FABRICACÃO</span>
+                                        @endif
+                                    </td>
                                     <td class="text-center">{{ $idx->tipo }}</td>
                                     <td class="text-center">{{ $idx->quantidade }}</td>
                                     <td class="text-left">{{ optional($idx->bauOrigem)->nome }}</td>

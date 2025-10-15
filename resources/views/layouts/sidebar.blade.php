@@ -1,4 +1,4 @@
-﻿<nav class="pcoded-navbar">
+<nav class="pcoded-navbar">
     <div class="sidebar_toggle"><a href="#"><i class="icon-close icons"></i></a></div>
     <div class="pcoded-inner-navbar main-menu">
         @can('acesso', ['administracao.rh.usuario.index', 'administracao.rh.perfil.index',
@@ -77,6 +77,17 @@
                                     </a>
                                 </li>
                             @endcan
+                            @can('acesso', 'administracao.sistema.configuracao.anomalia.edit')
+                                <li
+                                    class=" {{ request()->routeIs('administracao.sistema.configuracao.anomalia.edit') ? 'active' : '' }} ">
+                                    <a href="{{ route('administracao.sistema.configuracao.anomalia.edit') }}"
+                                        class="waves-effect waves-dark">
+                                        <span class="pcoded-micon"><i class="ti-ruler-pencil"></i><b>CB</b></span>
+                                        <span class="pcoded-mtext">Config. Anomalias</span>
+                                        <span class="pcoded-mcaret"></span>
+                                    </a>
+                                </li>
+                            @endcan
                         </ul>
                     </li>
                 @endcan
@@ -117,7 +128,7 @@
                         class="pcoded-hasmenu {{ request()->routeIs('administracao.fabricacao.*') ? 'active pcoded-trigger' : '' }}">
                         <a href="javascript:void(0)" class="waves-effect waves-dark">
                             <span class="pcoded-micon"><i class="ti-truck"></i><b>FB</b></span>
-                            <span class="pcoded-mtext">Fabricão</span>
+                            <span class="pcoded-mtext">Fabricação</span>
                             <span class="pcoded-mcaret"></span>
                         </a>
                         <ul class="pcoded-submenu">
@@ -146,11 +157,12 @@
             </li>
         </ul>
 
-        @can('acesso', ['bau.lancamentos.index', 'bau.lancamentos.historico'])
+        @can('acesso', ['bau.lancamentos.index', 'bau.lancamentos.historico', 'bau.lancamentos.estoque'])
             <div class="pcoded-navigation-label">Controle Baú</div>
             <ul class="pcoded-item pcoded-left-item">
-                    @can('acesso', 'bau.lancamentos.index')
-                        <li class=" {{ (request()->routeIs('bau.lancamentos.index') || request()->routeIs('bau.lancamentos.edit')) ? 'active' : '' }}">
+                @can('acesso', 'bau.lancamentos.index')
+                    <li
+                        class=" {{ request()->routeIs('bau.lancamentos.index') || request()->routeIs('bau.lancamentos.edit') ? 'active' : '' }}">
                         <a href="{{ route('bau.lancamentos.index') }}" class="waves-effect waves-dark">
                             <span class="pcoded-micon"><i class="ti-exchange-vertical"></i><b>CB</b></span>
                             <span class="pcoded-mtext">Lançamentos</span>
@@ -162,7 +174,25 @@
                     <li class=" {{ request()->routeIs('bau.lancamentos.historico') ? 'active' : '' }}">
                         <a href="{{ route('bau.lancamentos.historico') }}" class="waves-effect waves-dark">
                             <span class="pcoded-micon"><i class="ti-bar-chart"></i><b>CB</b></span>
-                            <span class="pcoded-mtext">Historico</span>
+                            <span class="pcoded-mtext">Histórico</span>
+                            <span class="pcoded-mcaret"></span>
+                        </a>
+                    </li>
+                @endcan
+                @can('acesso', 'bau.lancamentos.estoque')
+                    <li class=" {{ request()->routeIs('bau.lancamentos.estoque') ? 'active' : '' }}">
+                        <a href="{{ route('bau.lancamentos.estoque') }}" class="waves-effect waves-dark">
+                            <span class="pcoded-micon"><i class="ti-archive"></i><b>CB</b></span>
+                            <span class="pcoded-mtext">Estoque Total</span>
+                            <span class="pcoded-mcaret"></span>
+                        </a>
+                    </li>
+                @endcan
+                @can('acesso', 'bau.lancamentos.anomalias')
+                    <li class=" {{ request()->routeIs('bau.lancamentos.anomalias') ? 'active' : '' }}">
+                        <a href="{{ route('bau.lancamentos.anomalias') }}" class="waves-effect waves-dark">
+                            <span class="pcoded-micon"><i class="ti-alert"></i><b>CB</b></span>
+                            <span class="pcoded-mtext">Anomalias</span>
                             <span class="pcoded-mcaret"></span>
                         </a>
                     </li>
@@ -170,6 +200,4 @@
             </ul>
         @endcan
     </div>
-    </div>
-
 </nav>
