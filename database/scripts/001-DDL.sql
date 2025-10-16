@@ -255,3 +255,29 @@ CREATE TABLE IF NOT EXISTS LANCAMENTO (
     CONSTRAINT fk_LANCAMENTO_BAU_ORIGEM FOREIGN KEY (bau_origem_id) REFERENCES BAUS(id) ON DELETE CASCADE,
     CONSTRAINT fk_LANCAMENTO_BAU_DESTINO FOREIGN KEY (bau_origem_id) REFERENCES BAUS(id) ON DELETE CASCADE
 );
+
+CREATE SEQUENCE IF NOT EXISTS seq_DISCORD_SOLICITACAO INCREMENT BY 1 START WITH 1;
+CREATE TABLE IF NOT EXISTS DISCORD_SOLICITACAO (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    tipo ENUM('ENTRADA','SAIDA','TRANSFERENCIA') NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'pendente',
+    discord_message_id VARCHAR(64) NULL,
+    discord_channel_id VARCHAR(64) NULL,
+    discord_user_id VARCHAR(64) NULL,
+    discord_username VARCHAR(255) NULL,
+    bau_origem_id INT NULL,
+    bau_destino_id INT NULL,
+    itens JSON NULL,
+    payload JSON NULL,
+    observacao TEXT NULL,
+    processado_em DATETIME NULL,
+    processado_por INT NULL,
+    lancamentos_ids JSON NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_discord_solicitacao_status (status),
+    INDEX idx_discord_solicitacao_tipo (tipo),
+    CONSTRAINT fk_discord_solicitacao_bau_origem FOREIGN KEY (bau_origem_id) REFERENCES BAUS(id) ON DELETE SET NULL,
+    CONSTRAINT fk_discord_solicitacao_bau_destino FOREIGN KEY (bau_destino_id) REFERENCES BAUS(id) ON DELETE SET NULL,
+    CONSTRAINT fk_discord_solicitacao_usuario FOREIGN KEY (processado_por) REFERENCES USUARIOS(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

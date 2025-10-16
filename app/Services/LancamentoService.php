@@ -739,7 +739,7 @@ class LancamentoService implements LancamentoServiceInterface
         }
     }
 
-    private function obterSaldoItemNoBau(int $itemId, int $bauId): int
+    public function obterSaldoItemNoBau(int $itemId, int $bauId): int
     {
         if ($itemId <= 0 || $bauId <= 0) {
             return 0;
@@ -754,6 +754,25 @@ class LancamentoService implements LancamentoServiceInterface
         $saidas = Lancamento::query()
             ->whereIn('tipo', ['SAIDA', 'TRANSFERENCIA'])
             ->where('itens_id', $itemId)
+            ->where('bau_origem_id', $bauId)
+            ->sum('quantidade');
+
+        return (int) ($entradas - $saidas);
+    }
+
+    public function obterOcupacaoBau(int $bauId): int
+    {
+        if ($bauId <= 0) {
+            return 0;
+        }
+
+        $entradas = Lancamento::query()
+            ->whereIn('tipo', ['ENTRADA', 'TRANSFERENCIA'])
+            ->where('bau_destino_id', $bauId)
+            ->sum('quantidade');
+
+        $saidas = Lancamento::query()
+            ->whereIn('tipo', ['SAIDA', 'TRANSFERENCIA'])
             ->where('bau_origem_id', $bauId)
             ->sum('quantidade');
 

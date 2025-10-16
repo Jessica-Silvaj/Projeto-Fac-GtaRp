@@ -170,6 +170,15 @@
                         </a>
                     </li>
                 @endcan
+                @can('acesso', 'bau.lancamentos.solicitacoes.index')
+                    <li class=" {{ request()->routeIs('bau.lancamentos.solicitacoes.*') ? 'active' : '' }}">
+                        <a href="{{ route('bau.lancamentos.solicitacoes.index') }}" class="waves-effect waves-dark">
+                            <span class="pcoded-micon"><i class="ti-clipboard"></i><b>CB</b></span>
+                            <span class="pcoded-mtext">Solicitações</span>
+                            <span class="pcoded-mcaret"></span>
+                        </a>
+                    </li>
+                @endcan
                 @can('acesso', 'bau.lancamentos.historico')
                     <li class=" {{ request()->routeIs('bau.lancamentos.historico') ? 'active' : '' }}">
                         <a href="{{ route('bau.lancamentos.historico') }}" class="waves-effect waves-dark">

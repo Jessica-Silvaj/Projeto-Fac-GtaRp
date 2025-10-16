@@ -31,4 +31,15 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'discord' => [
+        'bot_token' => env('DISCORD_BOT_TOKEN'),
+        'canal_entrada_id' => env('CANAL_ENTRADA_ID'),
+        'canal_saida_id' => env('CANAL_SAIDA_ID'),
+        'canal_aprovada_id' => env('CANAL_MENSAGEM_APROVADA'),
+        'canal_reprovada_id' => env('CANAL_MENSAGEM_REPROVADA'),
+        'webhook_token' => env('DISCORD_WEBHOOK_TOKEN'),
+        'webhook_entradas' => env('DISCORD_WEBHOOK_ENTRADAS'),
+        'webhook_saidas' => env('DISCORD_WEBHOOK_SAIDAS'),
+    ],
+
 ];

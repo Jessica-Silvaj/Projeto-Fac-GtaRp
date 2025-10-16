@@ -116,6 +116,7 @@ Route::middleware('auth.check')->group(function () {
             Route::put('{solicitacao}', [SolicitacaoDiscordController::class, 'update'])->name('update');
             Route::post('{solicitacao}/aprovar', [SolicitacaoDiscordController::class, 'aprovar'])->name('aprovar');
             Route::post('{solicitacao}/rejeitar', [SolicitacaoDiscordController::class, 'rejeitar'])->name('rejeitar');
+            Route::get('navbar', [SolicitacaoDiscordController::class, 'navbar'])->name('navbar');
         });
         Route::get('historico', [LancamentoController::class, 'historico'])->name('historico');
         Route::get('historico/csv', [LancamentoController::class, 'historicoCsv'])->name('historico.csv');

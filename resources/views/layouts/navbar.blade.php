@@ -57,6 +57,27 @@
                         </ul>
                     </li>
                 @endcan
+                @can('acesso', 'bau.lancamentos.solicitacoes.index')
+                    <li class="header-notification dropdown" id="solicitacao-alerta-wrapper">
+                        <a href="#!" class="waves-effect waves-light">
+                            <i class="ti-clipboard" style="font-size:18px;"></i>
+                            <span class="badge bg-c-red badge-alerta" id="solicitacao-alerta-badge">0</span>
+                        </a>
+                        <ul class="show-notification" id="solicitacao-alerta-dropdown">
+                            <li>
+                                <h6>Solicitações pendentes</h6>
+                                <label class="label label-warning">Revisão</label>
+                            </li>
+                            <li class="text-center text-muted py-2" id="solicitacao-alerta-empty">Carregando...</li>
+                            <li class="text-center py-2" data-role="solicitacao-link">
+                                <a class="btn btn-sm btn-outline-secondary"
+                                    href="{{ route('bau.lancamentos.solicitacoes.index') }}">
+                                    Abrir solicitações
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                @endcan
                 {{-- <li class="header-notification">
                     <a href="#!" class="waves-effect waves-light">
                         <i class="ti-bell"></i>
@@ -173,12 +194,32 @@
                         empty.style.display = 'none';
 
                         var iconConfig = {
-                            'Negativo': { icon: 'ti-arrow-down', bg: 'bg-c-red', badge: 'badge-danger' },
-                            'Critico': { icon: 'ti-flag', bg: 'bg-c-blue', badge: 'badge-primary' },
-                            'Bau limite': { icon: 'ti-layers-alt', bg: 'bg-c-yellow', badge: 'badge-warning' },
-                            'Movimento atipico': { icon: 'ti-pulse', bg: 'bg-c-purple', badge: 'badge-info' }
+                            'Negativo': {
+                                icon: 'ti-arrow-down',
+                                bg: 'bg-c-red',
+                                badge: 'badge-danger'
+                            },
+                            'Critico': {
+                                icon: 'ti-flag',
+                                bg: 'bg-c-blue',
+                                badge: 'badge-primary'
+                            },
+                            'Bau limite': {
+                                icon: 'ti-layers-alt',
+                                bg: 'bg-c-yellow',
+                                badge: 'badge-warning'
+                            },
+                            'Movimento atipico': {
+                                icon: 'ti-pulse',
+                                bg: 'bg-c-purple',
+                                badge: 'badge-info'
+                            }
                         };
-                        var defaultConfig = { icon: 'ti-info-alt', bg: 'bg-c-blue', badge: 'badge-secondary' };
+                        var defaultConfig = {
+                            icon: 'ti-info-alt',
+                            bg: 'bg-c-blue',
+                            badge: 'badge-secondary'
+                        };
 
                         items.forEach(function(item) {
                             var li = document.createElement('li');
@@ -216,14 +257,16 @@
                                 }
                             }
 
-                            var badgeHtml = badgeTexto
-                                ? '<span class="badge notification-metric ' + iconData.badge + '">' + badgeTexto + '</span>'
-                                : '';
+                            var badgeHtml = badgeTexto ?
+                                '<span class="badge notification-metric ' + iconData.badge + '">' +
+                                badgeTexto + '</span>' :
+                                '';
 
                             li.innerHTML =
                                 '<div class="media">' +
                                 '<div class="media-left align-self-center mr-2 alert-icon-wrapper">' +
-                                '<i class="' + iconClass + '" style="color:#fff;padding:8px;border-radius:50%;font-size:12px;"></i>' +
+                                '<i class="' + iconClass +
+                                '" style="color:#fff;padding:8px;border-radius:50%;font-size:12px;"></i>' +
                                 badgeHtml +
                                 '</div>' +
                                 '<div class="media-body">' +
@@ -244,6 +287,87 @@
                         empty.textContent = 'Nao foi possivel carregar as informacoes.';
                         empty.style.display = '';
                     });
+            });
+        </script>
+    @endonce
+@endcan
+
+@can('acesso', 'bau.lancamentos.solicitacoes.index')
+    @once
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                var badge = document.getElementById('solicitacao-alerta-badge');
+                var dropdown = document.getElementById('solicitacao-alerta-dropdown');
+                var empty = document.getElementById('solicitacao-alerta-empty');
+                if (!badge || !dropdown || !empty) return;
+
+                var linkWrapper = dropdown.querySelector('li[data-role="solicitacao-link"]');
+
+                function atualizarBadge(valor) {
+                    var total = Number(valor) || 0;
+                    badge.textContent = total > 99 ? '99+' : (total > 0 ? String(total) : '0');
+                    badge.setAttribute('aria-label', total + ' solicitação(ões) pendente(s)');
+                }
+
+                atualizarBadge(0);
+
+                fetch('{{ route('bau.lancamentos.solicitacoes.navbar') }}', {
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                }).then(function(resp) {
+                    if (!resp.ok) throw new Error('Falha ao carregar solicitações');
+                    return resp.json();
+                }).then(function(data) {
+                    var count = Number(data && data.count) || 0;
+                    var items = Array.isArray(data && data.items) ? data.items : [];
+
+                    atualizarBadge(count);
+
+                    dropdown.querySelectorAll('li.solicitacao-item').forEach(function(li) {
+                        li.remove();
+                    });
+
+                    if (!items.length) {
+                        empty.innerHTML = '<span class="text-muted">Nenhuma solicitação pendente.</span>';
+                        empty.style.display = '';
+                        return;
+                    }
+
+                    empty.style.display = 'none';
+
+                    items.forEach(function(item) {
+                        var li = document.createElement('li');
+                        li.className = 'solicitacao-item waves-effect waves-light';
+                        var tipo = item && item.tipo ? item.tipo : '—';
+                        var usuario = item && item.usuario ? item.usuario : '—';
+                        var recebido = item && item.recebido_em ? item.recebido_em : '';
+                        var observacao = item && item.observacao ? item.observacao : '';
+
+                        li.innerHTML =
+                            '<div class="media">' +
+                            '<div class="media-left align-self-center mr-2">' +
+                            '<i class="ti-clipboard bg-c-warning" style="color:#fff;padding:8px;border-radius:50%;font-size:12px;"></i>' +
+                            '</div>' +
+                            '<div class="media-body">' +
+                            '<h5 class="notification-user mb-0">' + tipo + (recebido ? ' • ' +
+                                recebido : '') + '</h5>' +
+                            '<small class="text-muted d-block">Responsável: ' + usuario + '</small>' +
+                            '<span class="notification-time">' + (observacao || 'Sem observações') +
+                            '</span>' +
+                            '</div>' +
+                            '</div>';
+
+                        if (linkWrapper) {
+                            dropdown.insertBefore(li, linkWrapper);
+                        } else {
+                            dropdown.appendChild(li);
+                        }
+                    });
+                }).catch(function() {
+                    empty.innerHTML = '<span class="text-muted">Não foi possível carregar as solicitações.</span>';
+                    empty.style.display = '';
+                });
             });
         </script>
     @endonce

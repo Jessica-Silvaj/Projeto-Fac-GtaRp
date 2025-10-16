@@ -90,6 +90,30 @@
     }
   }
 
+  // Expose helpers so dynamic content can reuse the same setup
+  window.AppSelect2 = window.AppSelect2 || {};
+  window.AppSelect2.init = function (el) {
+    var $el = el instanceof jQuery ? el : $(el);
+    if (!$el || !$el.length) return;
+    $el.each(function () {
+      initSelect2($(this));
+    });
+  };
+  window.AppSelect2.initAll = function (scope) {
+    var $scope;
+    if (!scope) {
+      $scope = $(document);
+    } else if (scope instanceof jQuery) {
+      $scope = scope;
+    } else {
+      $scope = $(scope);
+    }
+    if (!$scope || !$scope.length) return;
+    $scope.find('select.form-control.select2').each(function () {
+      initSelect2($(this));
+    });
+  };
+
   $(function () {
     // Initialize only when class="select2" is present
     $('select.form-control.select2').each(function () {
