@@ -128,10 +128,10 @@
                             <table class="table table-sm table-striped mb-0">
                                 <thead>
                                     <tr>
-                                        <th>Item</th>
-                                        <th>Baú</th>
-                                        <th class="text-right">Saldo</th>
-                                        <th class="text-right">Ações</th>
+                                        <th class="text-center">Item</th>
+                                        <th class="text-center">Baú</th>
+                                        <th class="text-center">Saldo</th>
+                                        <th class="text-center">Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -139,9 +139,9 @@
                                         <tr>
                                             <td>{{ $row['item_nome'] }}</td>
                                             <td>{{ $row['bau_nome'] }}</td>
-                                            <td class="text-right text-danger">
+                                            <td class="text-center text-danger">
                                                 {{ number_format($row['saldo'], 0, ',', '.') }}</td>
-                                            <td class="text-right">
+                                            <td class="text-center">
                                                 @can('acesso', 'bau.lancamentos.historico')
                                                     <a class="btn btn-sm btn-primary"
                                                         href="{{ route('bau.lancamentos.historico') .
@@ -185,10 +185,10 @@
                             <table class="table table-sm table-striped mb-0">
                                 <thead>
                                     <tr>
-                                        <th>Item</th>
-                                        <th>Baú</th>
-                                        <th class="text-right">Quantidade</th>
-                                        <th class="text-right">Ações</th>
+                                        <th class="text-center">Item</th>
+                                        <th class="text-center">Baú</th>
+                                        <th class="text-center">Quantidade</th>
+                                        <th class="text-center">Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -196,9 +196,9 @@
                                         <tr>
                                             <td>{{ $row['item_nome'] }}</td>
                                             <td>{{ $row['bau_nome'] }}</td>
-                                            <td class="text-right text-primary">
+                                            <td class="text-center text-primary">
                                                 {{ number_format($row['quantidade'], 0, ',', '.') }}</td>
-                                            <td class="text-right">
+                                            <td class="text-center">
                                                 @can('acesso', 'bau.lancamentos.estoque')
                                                     <a class="btn btn-sm btn-primary"
                                                         href="{{ route('bau.lancamentos.estoque') .
@@ -241,23 +241,23 @@
                                 <thead>
                                     <tr>
                                         <th>Baú</th>
-                                        <th class="text-right">Quantidade</th>
-                                        <th class="text-right">Limite</th>
-                                        <th class="text-right">% Ocupado</th>
-                                        <th class="text-right">Ações</th>
+                                        <th class="text-center">Quantidade</th>
+                                        <th class="text-center">Limite</th>
+                                        <th class="text-center">% Ocupado</th>
+                                        <th class="text-center">Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @forelse ($bausCriticos as $row)
                                         <tr>
                                             <td>{{ $row['bau_nome'] }}</td>
-                                            <td class="text-right">{{ number_format($row['quantidade'], 0, ',', '.') }}
+                                            <td class="text-center">{{ number_format($row['quantidade'], 0, ',', '.') }}
                                             </td>
-                                            <td class="text-right">{{ number_format($row['limite'], 0, ',', '.') }}</td>
-                                            <td class="text-right">
+                                            <td class="text-center">{{ number_format($row['limite'], 0, ',', '.') }}</td>
+                                            <td class="text-center">
                                                 {{ number_format(($row['ocupacao_percentual'] ?? 0) * 100, 1, ',', '.') }}%
                                             </td>
-                                            <td class="text-right">
+                                            <td class="text-center">
                                                 @can('acesso', 'bau.lancamentos.estoque')
                                                     <a class="btn btn-sm btn-outline-secondary"
                                                         href="{{ route('bau.lancamentos.estoque') . '?' . http_build_query(['bau_id' => $row['bau_id'] ?? null]) }}">
@@ -294,26 +294,26 @@
                             <table class="table table-sm table-striped mb-0">
                                 <thead>
                                     <tr>
-                                        <th>Data</th>
-                                        <th>Item</th>
-                                        <th class="text-right">Quantidade</th>
-                                        <th>Tipo</th>
-                                        <th>Baú origem</th>
-                                        <th>Baú destino</th>
-                                        <th>Usuário</th>
+                                        <th class="text-center">Data</th>
+                                        <th class="text-center">Item</th>
+                                        <th class="text-center">Quantidade</th>
+                                        <th class="text-center">Tipo</th>
+                                        <th class="text-center">Baú origem</th>
+                                        <th class="text-center">Baú destino</th>
+                                        <th class="text-center">Usuário</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @forelse ($movimentosAtipicos as $row)
                                         <tr>
-                                            <td>{{ $row['data'] }}</td>
-                                            <td>{{ $row['item'] }}</td>
-                                            <td class="text-right">{{ number_format($row['quantidade'], 0, ',', '.') }}
+                                            <td class="text-center">{{ $row['data'] }}</td>
+                                            <td class="text-center">{{ $row['item'] }}</td>
+                                            <td class="text-center">{{ number_format($row['quantidade'], 0, ',', '.') }}
                                             </td>
-                                            <td>{{ $row['tipo'] }}</td>
-                                            <td>{{ $row['bau_origem'] }}</td>
-                                            <td>{{ $row['bau_destino'] }}</td>
-                                            <td>{{ $row['usuario'] }}</td>
+                                            <td class="text-center">{{ $row['tipo'] }}</td>
+                                            <td class="text-center">{{ $row['bau_origem'] }}</td>
+                                            <td class="text-center">{{ $row['bau_destino'] }}</td>
+                                            <td class="text-center">{{ $row['usuario'] }}</td>
                                         </tr>
                                     @empty
                                         <tr>

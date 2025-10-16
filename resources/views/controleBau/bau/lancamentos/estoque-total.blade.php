@@ -143,7 +143,7 @@
                                 <th class="text-right">Quantidade total</th>
                                 <th class="text-right">Itens</th>
                                 <th>Itens armazenados</th>
-                                <th class="text-right">Ações</th>
+                                <th class="text-center">Ações</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -186,7 +186,7 @@
                     </table>
                 </div>
                 <div class="mt-3">
-                    {{ $resumoBaus->withQueryString()->links() }}
+                    {{ $resumoBaus->appends(request()->all())->links('pagination::bootstrap-4') }}
                 </div>
             </div>
         </div>
