@@ -50,21 +50,21 @@ class Usuario extends Authenticatable
 
     public static function realizarLogin($obj)
     {
-        // dd(Hash::make($obj['senha']));
         $usuario = self::where("matricula", $obj['matricula'] ?? null)->first();
-
         if (!$usuario) {
             return null;
         }
 
-        if (!Hash::check($obj['senha'] ?? '', $usuario->senha)) {
-            return null;
-        }
+        $senhaInformada = $obj['senha'] ?? '';
 
-        // Rehash se necessário (migração transparente de hash mais antigo)
-        if (Hash::needsRehash($usuario->senha)) {
-            $usuario->senha = Hash::make($obj['senha']);
-            $usuario->save();
+
+        // Cria o hash com o mesmo salt usado no cadastro
+        $senhaCriptografada = crypt($senhaInformada, 'a45zzzz2s');
+        // dd($senhaCriptografada);
+        // a46PaBaWc0NC2 = 123456
+        // Compara diretamente com o valor salvo no banco
+        if ($usuario->senha !== $senhaCriptografada) {
+            return null;
         }
 
         return $usuario;

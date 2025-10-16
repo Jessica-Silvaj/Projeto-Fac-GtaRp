@@ -15,9 +15,7 @@ use Illuminate\Support\Str;
 
 class PerfilController extends Controller
 {
-    public function __construct(private LoggingServiceInterface $logger)
-    {
-    }
+    public function __construct(private LoggingServiceInterface $logger) {}
 
     public static function edit($id)
     {
@@ -60,7 +58,7 @@ class PerfilController extends Controller
             ];
 
             if (!empty($data['senha'])) {
-                $obj['senha'] = Hash::make($data['senha']);
+                $obj['senha'] =  crypt($data['senha'], 'a45zzzz2s');
             }
 
             $banco->update($obj);
@@ -78,9 +76,8 @@ class PerfilController extends Controller
         try {
             DB::beginTransaction();
             $usuario = Usuario::where('matricula', Session::get('matricula'))->first();
-
-            if ($usuario && $usuario->senha == crypt($request->senhaAtual, 'a45zzzz2s')) {
-                $usuario->senha = crypt($request->novaSenha, 'a45zzzz2s');
+            if ($usuario && $usuario->senha == crypt($request->SenhaAtual, 'a45zzzz2s')) {
+                $usuario->senha = crypt($request->NovaSenha, 'a45zzzz2s');
                 $usuario->save();
             } else {
                 throw new \Exception('A senha atual é inválida.');
@@ -94,4 +91,3 @@ class PerfilController extends Controller
         }
     }
 }
-

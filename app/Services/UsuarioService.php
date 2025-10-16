@@ -15,9 +15,7 @@ use Illuminate\Support\Str;
 
 class UsuarioService implements UsuarioServiceInterface
 {
-    public function __construct(private LoggingServiceInterface $logger)
-    {
-    }
+    public function __construct(private LoggingServiceInterface $logger) {}
 
     public function listar(Request $request): LengthAwarePaginator
     {
@@ -39,7 +37,7 @@ class UsuarioService implements UsuarioServiceInterface
         $funcoes = Funcao::obterTodos();
 
         $selecionadas = collect(old('funcoes', $usuario->funcoes->pluck('id')->all()))
-            ->map(fn ($v) => (int) $v)
+            ->map(fn($v) => (int) $v)
             ->all();
 
         return compact('usuario', 'situacao', 'perfil', 'funcoes', 'selecionadas');
@@ -75,13 +73,13 @@ class UsuarioService implements UsuarioServiceInterface
             }
 
             if (!empty($dados['senha'])) {
-                $obj->senha = Hash::make($dados['senha']);
+                $obj->senha =  crypt($dados['senha'], 'a45zzzz2s');
                 $obj->save();
             }
 
             $ids = collect($dados['funcoes'] ?? [])
-                ->filter(fn ($v) => $v !== '' && $v !== null)
-                ->map(fn ($v) => (int) $v)
+                ->filter(fn($v) => $v !== '' && $v !== null)
+                ->map(fn($v) => (int) $v)
                 ->unique()
                 ->values()
                 ->all();
