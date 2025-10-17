@@ -22,7 +22,7 @@
             }
 
             .kpi-card {
-                background: #fff;
+                background: #272e34;
                 border-radius: 12px;
                 padding: 1rem;
                 display: flex;
@@ -57,7 +57,7 @@
 
             .kpi-label {
                 font-weight: 600;
-                color: #0f172a;
+                color: #cb9725;
                 font-size: .95rem;
                 white-space: nowrap;
                 overflow: hidden;
@@ -73,7 +73,7 @@
             .kpi-value {
                 font-size: 1.6rem;
                 font-weight: 700;
-                color: #0b1220;
+                color: #cb9725;
                 margin-top: .35rem;
             }
 
@@ -96,7 +96,7 @@
                 flex-direction: column;
                 padding: 1rem;
                 border-radius: 12px;
-                background: #fff;
+                background: #272e34;
                 box-shadow: var(--card-elev);
                 border: 1px solid rgba(15, 23, 42, 0.03);
                 width: 100%;
