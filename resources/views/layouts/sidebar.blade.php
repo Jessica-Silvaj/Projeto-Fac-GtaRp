@@ -2,7 +2,9 @@
     <div class="sidebar_toggle"><a href="#"><i class="icon-close icons"></i></a></div>
     <div class="pcoded-inner-navbar main-menu">
         @can('acesso', ['administracao.rh.usuario.index', 'administracao.rh.perfil.index',
-            'administracao.rh.situacao.index', 'administracao.rh.funcao.index', 'administracao.sistema.permissoes.index'])
+            'administracao.rh.situacao.index', 'administracao.rh.funcao.index', 'administracao.sistema.permissoes.index',
+            'administracao.sistema.configuracao.anomalia.edit', 'administracao.estoque.itens.index',
+            'administracao.estoque.baus.index', 'administracao.fabricacao.produtos.index'])
             <div class="pcoded-navigation-label">Administração</div>
 
             <ul class="pcoded-item pcoded-left-item">

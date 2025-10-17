@@ -18,7 +18,7 @@
                 </div>
             </div>
             <a href="{{ route('dashboard') }}">
-                <img class="img-fluid" src="http://127.0.0.1:8000/assets/images/mrk-dourada.png" alt="Theme-Logo"
+                <img class="img-fluid" src="{{ asset('assets/images/mrk-dourada.png') }} " alt="Theme-Logo"
                     style="max-height:100px; height:auto; width:160px; margin-left: 10px">
             </a>
             <a class="mobile-options waves-effect waves-light">
@@ -365,7 +365,8 @@
                         }
                     });
                 }).catch(function() {
-                    empty.innerHTML = '<span class="text-muted">Não foi possível carregar as solicitações.</span>';
+                    empty.innerHTML =
+                        '<span class="text-muted">Não foi possível carregar as solicitações.</span>';
                     empty.style.display = '';
                 });
             });
