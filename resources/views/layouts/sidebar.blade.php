@@ -1,18 +1,57 @@
 <nav class="pcoded-navbar">
     <div class="sidebar_toggle"><a href="#"><i class="icon-close icons"></i></a></div>
     <div class="pcoded-inner-navbar main-menu">
-        @can('acesso', ['administracao.rh.usuario.index', 'administracao.rh.perfil.index',
-            'administracao.rh.situacao.index', 'administracao.rh.funcao.index', 'administracao.sistema.permissoes.index',
-            'administracao.sistema.configuracao.anomalia.edit', 'administracao.estoque.itens.index',
-            'administracao.estoque.baus.index', 'administracao.fabricacao.produtos.index'])
+        @php
+            /**
+             * Verifica se o usuário tem qualquer permissão do array usando o gate 'acesso'
+             */
+            if (!function_exists('hasAnyAcesso')) {
+                function hasAnyAcesso(array $perms): bool
+                {
+                    $user = auth()->user();
+                    if (!$user) {
+                        return false;
+                    }
+                    foreach ($perms as $p) {
+                        if ($user->can('acesso', $p)) {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+            }
+
+            $adminPerms = [
+                'administracao.rh.usuario.index',
+                'administracao.rh.perfil.index',
+                'administracao.rh.situacao.index',
+                'administracao.rh.funcao.index',
+                'administracao.sistema.permissoes.index',
+                'administracao.sistema.configuracao.anomalia.edit',
+                'administracao.estoque.itens.index',
+                'administracao.estoque.baus.index',
+                'administracao.fabricacao.produtos.index',
+            ];
+        @endphp
+
+        @if (hasAnyAcesso($adminPerms))
             <div class="pcoded-navigation-label">Administração</div>
 
             <ul class="pcoded-item pcoded-left-item">
-                @can('acesso', ['administracao.rh.usuario.index', 'administracao.rh.perfil.index',
-                    'administracao.rh.situacao.index', 'administracao.rh.funcao.index'])
-                    <li class="pcoded-hasmenu {{ request()->routeIs('administracao.rh.*') ? 'active pcoded-trigger' : '' }}">
+                @php
+                    $rhPerms = [
+                        'administracao.rh.usuario.index',
+                        'administracao.rh.perfil.index',
+                        'administracao.rh.situacao.index',
+                        'administracao.rh.funcao.index',
+                    ];
+                @endphp
+
+                @if (hasAnyAcesso($rhPerms))
+                    <li
+                        class="pcoded-hasmenu {{ request()->routeIs('administracao.rh.*') ? 'active pcoded-trigger' : '' }}">
                         <a href="javascript:void(0)" class="waves-effect waves-dark">
-                            <span class="pcoded-micon"><i class="ti-user"></i><b>RH</b></span>
+                            <span class="pcoded-micon"><i class="ti-user"></i><b>CB</b></span>
                             <span class="pcoded-mtext">Recursos Humanos</span>
                             <span class="pcoded-mcaret"></span>
                         </a>
@@ -39,7 +78,8 @@
 
                             @can('acesso', 'administracao.rh.situacao.index')
                                 <li class="{{ request()->routeIs('administracao.rh.situacao') ? 'active' : '' }}">
-                                    <a href="{{ route('administracao.rh.situacao.index') }}" class="waves-effect waves-dark">
+                                    <a href="{{ route('administracao.rh.situacao.index') }}"
+                                        class="waves-effect waves-dark">
                                         <span class="pcoded-micon"><i class="ti-briefcase"></i><b>CB</b></span>
                                         <span class="pcoded-mtext">Situação</span>
                                         <span class="pcoded-mcaret"></span>
@@ -58,7 +98,7 @@
                             @endcan
                         </ul>
                     </li>
-                @endcan
+                @endif
 
                 @can('acesso', 'administracao.sistema.permissoes.index')
                     <li
@@ -94,7 +134,11 @@
                     </li>
                 @endcan
 
-                @can('acesso', ['administracao.estoque.itens.index', 'administracao.estoque.baus.index'])
+                @php
+                    $estoquePerms = ['administracao.estoque.itens.index', 'administracao.estoque.baus.index'];
+                @endphp
+
+                @if (hasAnyAcesso($estoquePerms))
                     <li
                         class="pcoded-hasmenu {{ request()->routeIs('administracao.estoque.*') ? 'active pcoded-trigger' : '' }}">
                         <a href="javascript:void(0)" class="waves-effect waves-dark">
@@ -105,7 +149,8 @@
                         <ul class="pcoded-submenu">
                             @can('acesso', 'administracao.estoque.itens.index')
                                 <li class="{{ request()->routeIs('administracao.estoque.itens') ? 'active' : '' }} ">
-                                    <a href="{{ route('administracao.estoque.itens.index') }}" class="waves-effect waves-dark">
+                                    <a href="{{ route('administracao.estoque.itens.index') }}"
+                                        class="waves-effect waves-dark">
                                         <span class="pcoded-micon"><i class="ti-briefcase"></i><b>CB</b></span>
                                         <span class="pcoded-mtext">Itens</span>
                                         <span class="pcoded-mcaret"></span>
@@ -115,7 +160,8 @@
 
                             @can('acesso', 'administracao.estoque.baus.index')
                                 <li class="{{ request()->routeIs('administracao.estoque.baus') ? 'active' : '' }} ">
-                                    <a href="{{ route('administracao.estoque.baus.index') }}" class="waves-effect waves-dark">
+                                    <a href="{{ route('administracao.estoque.baus.index') }}"
+                                        class="waves-effect waves-dark">
                                         <span class="pcoded-micon"><i class="ti-briefcase"></i><b>CB</b></span>
                                         <span class="pcoded-mtext">Baús</span>
                                         <span class="pcoded-mcaret"></span>
@@ -124,7 +170,8 @@
                             @endcan
                         </ul>
                     </li>
-                @endcan
+                @endif
+
                 @can('acesso', 'administracao.fabricacao.produtos.index')
                     <li
                         class="pcoded-hasmenu {{ request()->routeIs('administracao.fabricacao.*') ? 'active pcoded-trigger' : '' }}">
@@ -146,7 +193,7 @@
                     </li>
                 @endcan
             </ul>
-        @endcan
+        @endif
 
         <div class="pcoded-navigation-label">Navegação</div>
         <ul class="pcoded-item pcoded-left-item">
@@ -159,7 +206,18 @@
             </li>
         </ul>
 
-        @can('acesso', ['bau.lancamentos.index', 'bau.lancamentos.historico', 'bau.lancamentos.estoque'])
+        @php
+            // Permissões relacionadas ao módulo Controle Baú
+            $bauPerms = [
+                'bau.lancamentos.index',
+                'bau.lancamentos.historico',
+                'bau.lancamentos.estoque.index',
+                'bau.lancamentos.solicitacoes.index',
+                'bau.lancamentos.anomalias',
+            ];
+        @endphp
+
+        @if (hasAnyAcesso($bauPerms))
             <div class="pcoded-navigation-label">Controle Baú</div>
             <ul class="pcoded-item pcoded-left-item">
                 @can('acesso', 'bau.lancamentos.index')
@@ -190,7 +248,7 @@
                         </a>
                     </li>
                 @endcan
-                @can('acesso', 'bau.lancamentos.estoque')
+                @can('acesso', 'bau.lancamentos.estoque.index')
                     <li class=" {{ request()->routeIs('bau.lancamentos.estoque') ? 'active' : '' }}">
                         <a href="{{ route('bau.lancamentos.estoque') }}" class="waves-effect waves-dark">
                             <span class="pcoded-micon"><i class="ti-archive"></i><b>CB</b></span>
@@ -209,6 +267,6 @@
                     </li>
                 @endcan
             </ul>
-        @endcan
+        @endif
     </div>
 </nav>

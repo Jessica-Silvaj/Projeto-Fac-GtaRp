@@ -2,153 +2,388 @@
 
 @section('conteudo')
     <div class="col-sm-12">
-
         <style>
-            .card-elevated {
-                border: 0;
-                box-shadow: 0 10px 22px rgba(0, 0, 0, .06), 0 4px 6px rgba(0, 0, 0, .04);
-                border-radius: 1rem;
+            :root {
+                --muted: #6b7280;
+                --card-elev: 0 10px 30px rgba(2, 6, 23, 0.06);
             }
 
-            .soft {
-                color: var(--text-muted, #9d711d);
+            /* KPIs */
+            .kpi-grid {
+                display: flex;
+                gap: 1rem;
+                flex-wrap: wrap;
+                margin-bottom: 1rem;
             }
 
-            .kpi {
-                border-radius: 1rem;
+            .kpi-col {
+                flex: 1 1 calc(33.333% - 1rem);
+                min-width: 240px;
+            }
+
+            .kpi-card {
+                background: #fff;
+                border-radius: 12px;
+                padding: 1rem;
+                display: flex;
+                gap: 1rem;
+                align-items: center;
+                box-shadow: var(--card-elev);
+                border: 1px solid rgba(15, 23, 42, 0.03);
+                transition: transform .16s, box-shadow .16s;
+            }
+
+            .kpi-card:hover {
+                transform: translateY(-6px);
+                box-shadow: 0 18px 40px rgba(2, 6, 23, 0.08);
+            }
+
+            .kpi-icon {
+                width: 64px;
+                height: 64px;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 24px;
+                color: #fff;
+                flex: 0 0 64px;
+            }
+
+            .kpi-body {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .kpi-label {
+                font-weight: 600;
+                color: #0f172a;
+                font-size: .95rem;
+                white-space: nowrap;
                 overflow: hidden;
-                position: relative;
-                height: 100%;
+                text-overflow: ellipsis;
             }
 
-            .kpi .value {
-                font-size: clamp(1.4rem, 1.2rem + 1vw, 2rem);
-                font-weight: 800;
+            .kpi-meta {
+                color: var(--muted);
+                font-size: .85rem;
+                margin-top: .125rem;
             }
 
-            .chip {
+            .kpi-value {
+                font-size: 1.6rem;
+                font-weight: 700;
+                color: #0b1220;
+                margin-top: .35rem;
+            }
+
+            .kpi-chip {
+                padding: .25rem .5rem;
                 border-radius: 999px;
-                padding: .35rem .7rem;
-                font-size: .8rem;
-                background: var(--chip-bg, rgba(0, 0, 0, .06));
-                color: var(--chip-fg, inherit);
+                font-size: .78rem;
+                color: #fff;
+                background: #0ea5a3;
+                display: inline-block;
             }
 
-            .chip.success {
-                background: var(--success-bg, rgba(16, 185, 129, .12));
-                color: var(--success-fg, #059669);
+            /* Panels e listas */
+            .row-equal>[class*="col-"] {
+                display: flex;
             }
 
-            .chip.danger {
-                background: var(--danger-bg, rgba(239, 68, 68, .12));
-                color: var(--danger-fg, #dc2626);
+            .card-panel {
+                display: flex;
+                flex-direction: column;
+                padding: 1rem;
+                border-radius: 12px;
+                background: #fff;
+                box-shadow: var(--card-elev);
+                border: 1px solid rgba(15, 23, 42, 0.03);
+                width: 100%;
             }
 
-            .chip.info {
-                background: var(--info-bg, rgba(99, 102, 241, .12));
-                color: var(--info-fg, #4f46e5);
+            .card-panel .chart-wrap {
+                flex: 1 1 auto;
+                display: flex;
+                align-items: center;
             }
 
-            .row-tight>[class*='col-'] {
-                padding-left: .6rem;
+            .card-panel canvas {
+                width: 100% !important;
+                height: 220px !important;
+                max-height: 260px;
+            }
+
+            /* Pendentes: scroll */
+            .list-scroll {
+                max-height: 420px;
+                overflow: auto;
                 padding-right: .6rem;
+                margin-top: .75rem;
+            }
+
+            .list-scroll::-webkit-scrollbar {
+                width: 10px;
+                height: 10px;
+            }
+
+            .list-scroll::-webkit-scrollbar-track {
+                background: transparent;
+            }
+
+            .list-scroll::-webkit-scrollbar-thumb {
+                background: rgba(15, 23, 42, 0.08);
+                border-radius: 999px;
+                border: 2px solid transparent;
+                background-clip: padding-box;
+            }
+
+            .list-scroll::-webkit-scrollbar-thumb:hover {
+                background: rgba(15, 23, 42, 0.12);
+            }
+
+            .list-scroll {
+                scrollbar-width: thin;
+                scrollbar-color: rgba(15, 23, 42, 0.08) transparent;
+            }
+
+            .list-item {
+                display: flex;
+                gap: .75rem;
+                align-items: flex-start;
+                margin-bottom: .9rem;
+            }
+
+            .icon-box {
+                width: 48px;
+                height: 48px;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #fff;
+                font-weight: 600;
+                flex: 0 0 48px;
+            }
+
+            .meta {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .meta strong {
+                display: block;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .meta small {
+                display: block;
+                color: var(--muted);
+            }
+
+            .right {
+                text-align: right;
+                min-width: 0;
+            }
+
+            /* Responsividade */
+            @media (max-width:991px) {
+                .kpi-col {
+                    flex: 1 1 calc(50% - 1rem);
+                }
+            }
+
+            @media (max-width:575px) {
+                .kpi-col {
+                    flex: 1 1 100%;
+                }
+
+                .kpi-icon {
+                    width: 56px;
+                    height: 56px;
+                    font-size: 20px;
+                }
+
+                .card-panel canvas {
+                    height: 180px !important;
+                }
+
+                .list-scroll {
+                    max-height: 260px;
+                }
             }
         </style>
 
-        {{-- =========================
-         LINHA 1: 3 KPIs
-    ========================== --}}
+        {{-- KPIs --}}
         @php
             $row1 = $cards_row1 ?? (isset($cards) ? array_slice($cards, 0, 3) : []);
+            $row2 = $cards_row2 ?? (isset($cards) ? array_slice($cards, 3, 3) : []);
         @endphp
-        <div class="row row-tight">
-            @foreach ($row1 as $card)
-                <div class="col-xl-4 col-md-6 mb-4">
-                    <div class="card card-elevated kpi h-100">
-                        <div class="card-body d-flex align-items-start justify-content-between">
-                            <div>
-                                <div class="soft mb-1">{{ $card['label'] ?? '—' }}</div>
-                                <div class="value mb-1" style="color:black">{{ $card['value'] ?? 0 }}</div>
-                                @if (!empty($card['description']))
-                                    <small class="soft">{{ $card['description'] }}</small>
-                                @endif
-                            </div>
-                            @if (!empty($card['icon']))
-                                <span class="d-inline-flex align-items-center justify-content-center"
-                                    style="width:44px;height:44px;border-radius:14px;background:rgba(0,0,0,.06)">
-                                    <i class="{{ $card['icon'] }} soft f-24"></i>
-                                </span>
-                            @endif
+        <div class="kpi-grid">
+            @foreach (array_merge($row1, $row2) as $card)
+                <div class="kpi-col">
+                    @if (!empty($card['url']))
+                        <a href="{{ $card['url'] }}" style="text-decoration:none;color:inherit;">
+                    @endif
+                    <div class="kpi-card">
+                        <div class="kpi-icon" style="background:{!! $card['color'] ?? 'linear-gradient(135deg,#6366f1,#06b6d4)' !!};">
+                            <i class="{{ $card['icon'] ?? 'ti-user' }}"></i>
                         </div>
+                        <div class="kpi-body">
+                            <div class="kpi-label">{{ $card['label'] ?? '' }}</div>
+                            <div class="kpi-meta">{{ $card['description'] ?? '' }}</div>
+                            <div class="kpi-value" data-target="{{ $card['value'] ?? 0 }}">0</div>
+                        </div>
+                        @if (!empty($card['url']))
+                            <div style="margin-left:12px"><span class="kpi-chip">Ir</span></div>
+                        @endif
                     </div>
+                    @if (!empty($card['url']))
+                        </a>
+                    @endif
                 </div>
             @endforeach
         </div>
 
-        {{-- =========================
-         LINHA 2: 3 KPIs (usa $cards_row2 ou defaults)
-    ========================== --}}
-        @php
-            $row2 =
-                $cards_row2 ??
-                (isset($cards)
-                    ? array_slice($cards, 3, 3)
-                    : [
-                        ['label' => 'Usuários Ativos', 'value' => $usuariosAtivos ?? 0, 'icon' => 'feather icon-users'],
-                        ['label' => 'Baús Criados', 'value' => $bausCriados ?? 0, 'icon' => 'feather icon-archive'],
-                        [
-                            'label' => 'Itens Movimentados',
-                            'value' => $itensMovimentados ?? 0,
-                            'icon' => 'feather icon-box',
-                        ],
-                    ]);
-        @endphp
-        <div class="row row-tight">
-            @foreach ($row2 as $card)
-                <div class="col-xl-4 col-md-6 mb-4">
-                    <div class="card card-elevated kpi h-100">
-                        <div class="card-body d-flex align-items-start justify-content-between">
-                            <div>
-                                <div class="soft mb-1">{{ $card['label'] ?? '—' }}</div>
-                                <div class="value mb-1" style="color:black">{{ $card['value'] ?? 0 }}</div>
-                                @if (!empty($card['description']))
-                                    <small class="soft">{{ $card['description'] }}</small>
-                                @endif
-                            </div>
-                            @if (!empty($card['icon']))
-                                <span class="d-inline-flex align-items-center justify-content-center"
-                                    style="width:44px;height:44px;border-radius:14px;background:rgba(0,0,0,.06)">
-                                    <i class="{{ $card['icon'] }} soft f-24"></i>
-                                </span>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-            @endforeach
-        </div>
-
-        {{-- =========================
-         LINHA 3: GRÁFICOS LADO A LADO
-    ========================== --}}
-        <div class="row row-tight">
+        {{-- Painéis Solicitações e Lançamentos lado a lado --}}
+        <div class="row row-tight row-equal">
             <div class="col-xl-6 mb-4">
-                <div class="card card-elevated h-100">
-                    <div class="card-header d-flex align-items-center justify-content-between">
-                        <h3 class="mb-0">Solicitações no Discord</h3>
+                <div class="card-panel">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem;">
+                        <h5 style="margin:0;">Solicitações</h5>
+                        <div>
+                            @if (Route::has('bau.lancamentos.solicitacoes.index'))
+                                <a href="{{ route('bau.lancamentos.solicitacoes.index') }}"
+                                    class="btn btn-sm btn-outline-primary">Ver todas</a>
+                            @endif
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <canvas id="chartSolicitacoes" height="160"></canvas>
+
+                    <div class="chart-wrap">
+                        <canvas id="chartSolicitacoes" height="220"></canvas>
                     </div>
+
+                    <hr>
+
+                    <h6 style="margin-bottom:.5rem;">Pendentes recentes</h6>
+                    <ul class="list-unstyled small-list list-scroll">
+                        @forelse($solicitacoesPendentes ?? [] as $s)
+                            @php
+                                $assunto = $s->assunto ?? ($s->titulo ?? 'Solicitação');
+                                $hora = optional($s->created_at)->format('d/m/Y H:i');
+                                $usuarioNome =
+                                    optional($s->usuario)->nome ?? (optional($s->usuario)->username ?? 'N/A');
+                                $bg = 'linear-gradient(135deg,#f59e0b,#ef4444)';
+                                $badgeBg = '#fff8ed';
+                                $badgeColor = '#92400e';
+                            @endphp
+
+                            <li class="list-item">
+                                <div class="icon-box" style="background: {{ $bg }};">
+                                    <i class="ti-time" style="font-size:16px"></i>
+                                </div>
+
+                                <div class="meta">
+                                    <strong
+                                        title="{{ $assunto }}">{{ \Illuminate\Support\Str::limit($assunto, 70) }}</strong>
+                                    <small>Por {{ $usuarioNome }} · <span>{{ $hora }}</span></small>
+
+                                    @if (!empty($s->descricao ?? $s->mensagem))
+                                        <div style="margin-top:.35rem;color:var(--muted);font-size:.92rem;">
+                                            {{ \Illuminate\Support\Str::limit($s->descricao ?? $s->mensagem, 140) }}
+                                        </div>
+                                    @endif
+                                </div>
+
+                                <div class="right">
+                                    <span
+                                        style="background:{{ $badgeBg }};color:{{ $badgeColor }};padding:.25rem .5rem;border-radius:.5rem;font-size:.8rem;border:1px solid rgba(0,0,0,0.03)">Pendente</span>
+                                    <div class="text-muted" style="font-size:.85rem;margin-top:.35rem;">ID
+                                        #{{ $s->id }}</div>
+                                </div>
+                            </li>
+                        @empty
+                            <li class="text-muted">Nenhuma solicitação pendente.</li>
+                        @endforelse
+                    </ul>
                 </div>
             </div>
+
             <div class="col-xl-6 mb-4">
-                <div class="card card-elevated h-100">
-                    <div class="card-header d-flex align-items-center justify-content-between">
-                        <h3 class="mb-0">Resumo de Lançamentos</h3>
+                <div class="card-panel">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem;">
+                        <h5 style="margin:0;">Lançamentos</h5>
+                        <div>
+                            @if (Route::has('bau.lancamentos.index'))
+                                <a href="{{ route('bau.lancamentos.index') }}" class="btn btn-sm btn-outline-primary">Ver
+                                    todos</a>
+                            @endif
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <canvas id="chartLancamentos" height="160"></canvas>
+
+                    <div class="chart-wrap">
+                        <canvas id="chartLancamentos" height="220"></canvas>
                     </div>
+
+                    <hr>
+
+                    <h6 style="margin-bottom:.5rem;">Últimos lançamentos</h6>
+                    <ul class="list-unstyled small-list list-scroll">
+                        @forelse($ultimosLancamentos ?? [] as $l)
+                            @php
+                                $tipo = strtolower($l->tipo ?? ($l->movimento ?? ''));
+                                $quant = $l->quantidade ?? ($l->qtd ?? ($l->quantidade_movimento ?? null));
+                                $itemNome = optional($l->item)->nome ?? 'Item #' . ($l->item_id ?? '?');
+                                $usuarioNome =
+                                    optional($l->usuario)->nome ?? (optional($l->usuario)->username ?? 'N/A');
+                                $time = optional($l->data_atribuicao ?? $l->created_at)->format('d/m/Y H:i');
+                                $bg =
+                                    $tipo === 'saida'
+                                        ? 'linear-gradient(135deg,#ef4444,#fb923c)'
+                                        : ($tipo === 'entrada'
+                                            ? 'linear-gradient(135deg,#10b981,#06b6d4)'
+                                            : '#6b7280');
+                                $badgeBg =
+                                    $tipo === 'saida' ? '#ffebe9' : ($tipo === 'entrada' ? '#e6ffef' : '#f3f4f6');
+                                $badgeColor =
+                                    $tipo === 'saida' ? '#b91c1c' : ($tipo === 'entrada' ? '#065f46' : '#374151');
+                            @endphp
+
+                            <li class="list-item">
+                                <div class="icon-box" style="background: {{ $bg }};">
+                                    @if ($quant)
+                                        {{ $quant }}
+                                    @else
+                                        <i class="ti-archive" style="font-size:16px;"></i>
+                                    @endif
+                                </div>
+
+                                <div class="meta">
+                                    <strong title="{{ $itemNome }}">{{ $itemNome }}</strong>
+                                    <small>Por {{ $usuarioNome }}</small>
+
+                                    @if (!empty($l->observacao ?? $l->nota))
+                                        <div style="margin-top:.35rem;color:var(--muted);font-size:.92rem;">
+                                            {{ \Illuminate\Support\Str::limit($l->observacao ?? $l->nota, 140) }}
+                                        </div>
+                                    @endif
+                                </div>
+
+                                <div class="right">
+                                    @if ($tipo)
+                                        <span
+                                            style="background:{{ $badgeBg }};color:{{ $badgeColor }};padding:.25rem .5rem;border-radius:.5rem;font-size:.8rem;">{{ ucfirst($tipo) }}</span>
+                                    @endif
+                                    <div class="text-muted" style="font-size:.85rem;margin-top:.35rem;">{{ $time }}
+                                    </div>
+                                </div>
+                            </li>
+                        @empty
+                            <li class="text-muted">Nenhum lançamento recente.</li>
+                        @endforelse
+                    </ul>
                 </div>
             </div>
         </div>
@@ -168,76 +403,175 @@
             return color || fallback;
         }
 
-        // ======== Solicitações (Doughnut) ========
-        const resumoSolic = @json((object) ($solicitacaoResumo ?? []));
-        const labelsSolic = Object.keys(resumoSolic);
-        const dataSolic = Object.values(resumoSolic);
-        const palette = [
-            cssColorOf('text-primary', '#3b82f6'),
-            cssColorOf('text-success', '#10b981'),
-            cssColorOf('text-danger', '#ef4444'),
-            cssColorOf('text-info', '#6366f1'),
-            cssColorOf('text-warning', '#f59e0b'),
-            cssColorOf('text-secondary', '#6b7280')
-        ];
-        const ctx1 = document.getElementById('chartSolicitacoes');
-        if (ctx1) {
-            new Chart(ctx1, {
-                type: 'doughnut',
-                data: {
-                    labels: labelsSolic,
-                    datasets: [{
-                        data: dataSolic,
-                        backgroundColor: labelsSolic.map((_, i) => palette[i % palette.length]),
-                        borderWidth: 0,
-                    }]
-                },
-                options: {
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        }
-                    },
-                    cutout: '60%'
-                }
-            });
+        function createGradient(ctx, x0, y0, x1, y1, colorA, colorB) {
+            const g = ctx.createLinearGradient(x0, y0, x1, y1);
+            g.addColorStop(0, colorA);
+            g.addColorStop(1, colorB || colorA);
+            return g;
         }
 
-        // ======== Lançamentos (Bar) ========
-        const lr = @json((object) ($lancamentoResumo ?? []));
-        const entradas = Number(lr.entradas ?? 0);
-        const saidas = Number(lr.saidas ?? 0);
-        const total = Number(lr.total ?? (entradas + saidas));
-        const ctx2 = document.getElementById('chartLancamentos');
-        if (ctx2) {
-            new Chart(ctx2, {
-                type: 'bar',
-                data: {
-                    labels: ['Entradas', 'Saídas', 'Total'],
-                    datasets: [{
-                        label: 'Movimentações',
-                        data: [entradas, saidas, total],
-                        backgroundColor: [
-                            cssColorOf('text-success', '#10b981'),
-                            cssColorOf('text-danger', '#ef4444'),
-                            cssColorOf('text-info', '#6366f1')
-                        ],
-                        borderWidth: 0,
-                    }]
-                },
-                options: {
-                    plugins: {
-                        legend: {
-                            display: false
+        document.addEventListener('DOMContentLoaded', function() {
+            // animação KPIs
+            (function animateCounts(duration = 900) {
+                document.querySelectorAll('.kpi-value').forEach(el => {
+                    const target = Number(el.getAttribute('data-target') || 0);
+                    const startTime = performance.now();
+
+                    function tick(now) {
+                        const progress = Math.min((now - startTime) / duration, 1);
+                        const value = Math.floor(progress * target);
+                        el.textContent = value.toLocaleString();
+                        if (progress < 1) requestAnimationFrame(tick);
+                    }
+                    requestAnimationFrame(tick);
+                });
+            })();
+
+            const solicitacaoResumo = {!! json_encode((object) ($solicitacaoResumo ?? [])) !!};
+            const solicitacaoStatusLabels = {!! json_encode($solicitacaoStatusLabels ?? (object) []) !!};
+            const lr = {!! json_encode((object) ($lancamentoResumo ?? [])) !!};
+
+            // Solicitações - doughnut com total central
+            (function() {
+                const ctx = document.getElementById('chartSolicitacoes');
+                if (!ctx) return;
+                const labels = Object.keys(solicitacaoResumo).map(key => (solicitacaoStatusLabels[key] &&
+                    solicitacaoStatusLabels[key].label) ? solicitacaoStatusLabels[key].label : key);
+                const data = Object.values(solicitacaoResumo).map(v => Number(v || 0));
+                const total = data.reduce((s, v) => s + v, 0);
+                const palette = [
+                    cssColorOf('text-warning', '#f59e0b'),
+                    cssColorOf('text-info', '#6366f1'),
+                    cssColorOf('text-success', '#10b981'),
+                    cssColorOf('text-danger', '#ef4444'),
+                    cssColorOf('text-primary', '#3b82f6'),
+                    cssColorOf('text-secondary', '#6b7280')
+                ];
+
+                const centerTextPlugin = {
+                    id: 'centerText',
+                    afterDraw(chart) {
+                        const {
+                            ctx,
+                            chartArea: {
+                                width,
+                                height,
+                                top,
+                                left
+                            }
+                        } = chart;
+                        ctx.save();
+                        ctx.fillStyle = '#0b1220';
+                        ctx.font =
+                            '700 18px Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        const x = left + width / 2;
+                        const y = top + height / 2;
+                        ctx.fillText(total.toLocaleString(), x, y - 8);
+                        ctx.font = '400 12px Inter, system-ui';
+                        ctx.fillStyle = '#6b7280';
+                        ctx.fillText('Total', x, y + 12);
+                        ctx.restore();
+                    }
+                };
+
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels,
+                        datasets: [{
+                            data,
+                            backgroundColor: palette.slice(0, data.length),
+                            hoverOffset: 8,
+                            borderColor: '#fff',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        cutout: '65%',
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label(ctx) {
+                                        const v = Number(ctx.raw || 0);
+                                        const pct = total > 0 ? ((v / total) * 100).toFixed(1) : '0.0';
+                                        return `${ctx.label}: ${v.toLocaleString()} (${pct}%)`;
+                                    }
+                                }
+                            }
+                        },
+                        animation: {
+                            duration: 900,
+                            easing: 'easeOutQuart'
                         }
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true
+                    plugins: [centerTextPlugin]
+                });
+            })();
+
+            // Lançamentos - barras com gradiente
+            (function() {
+                const ctxEl = document.getElementById('chartLancamentos');
+                if (!ctxEl) return;
+                const entradas = Number(lr.entradas ?? lr.hoje ?? 0);
+                const saidas = Number(lr.saidas ?? 0);
+                const data = [entradas, saidas];
+                const ctx = ctxEl.getContext('2d');
+                const gradA = createGradient(ctx, 0, 0, ctxEl.width, 0, '#10b981', '#06b6d4');
+                const gradB = createGradient(ctx, 0, 0, ctxEl.width, 0, '#ef4444', '#fb923c');
+
+                new Chart(ctxEl, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Entradas', 'Saídas'],
+                        datasets: [{
+                            label: 'Movimentos',
+                            data,
+                            backgroundColor: [gradA, gradB],
+                            borderRadius: 8,
+                            borderSkipped: false,
+                            maxBarThickness: 64
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label(ctx) {
+                                        return `${ctx.label}: ${Number(ctx.raw || 0).toLocaleString()}`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    precision: 0
+                                }
+                            }
+                        },
+                        animation: {
+                            duration: 900,
+                            easing: 'easeOutQuart'
                         }
                     }
-                }
-            });
-        }
+                });
+            })();
+        });
     </script>
 @endsection
