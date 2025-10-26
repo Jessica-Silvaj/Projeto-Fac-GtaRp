@@ -54,14 +54,23 @@ return [
             'unix_socket' => env('DB_SOCKET', ''),
             'charset' => 'utf8mb4',
             'collation' => 'utf8mb4_unicode_ci',
-	    'timezone' => env('DB_TIMEZONE', '-03:00'),
+            'timezone' => env('DB_TIMEZONE', '-03:00'),
             'prefix' => '',
             'prefix_indexes' => true,
             'strict' => true,
             'engine' => null,
+            // Otimizações para alta concorrência
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+                PDO::ATTR_PERSISTENT => false, // Sempre false para evitar vazamentos
+                PDO::ATTR_TIMEOUT => 5, // Timeout rápido
+                PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => true,
+                PDO::ATTR_EMULATE_PREPARES => false, // Melhor performance
+                PDO::MYSQL_ATTR_INIT_COMMAND => "SET sql_mode='STRICT_TRANS_TABLES'",
             ]) : [],
+            // Pool de conexões para alta concorrência
+            'read_write_timeout' => 5,
+            'connect_timeout' => 3,
         ],
 
         'pgsql' => [
@@ -126,7 +135,7 @@ return [
 
         'options' => [
             'cluster' => env('REDIS_CLUSTER', 'redis'),
-            'prefix' => env('REDIS_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_').'_database_'),
+            'prefix' => env('REDIS_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_') . '_database_'),
         ],
 
         'default' => [

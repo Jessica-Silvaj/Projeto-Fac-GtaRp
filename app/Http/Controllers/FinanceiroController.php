@@ -56,7 +56,7 @@ class FinanceiroController extends Controller
         $usuariosComVendas = Usuario::select('id', 'nome')->whereExists(function ($query) use ($dataInicio, $dataFim) {
             $query->select(DB::raw(1))
                 ->from('FILA_ESPERA')
-                ->whereRaw('FILA_ESPERA.usuario_id = usuarios.id')
+                ->whereRaw('FILA_ESPERA.usuario_id = USUARIOS.id')
                 ->where('FILA_ESPERA.status', FilaEspera::STATUS_CONCLUIDO);
 
             if ($dataInicio) {
@@ -70,19 +70,19 @@ class FinanceiroController extends Controller
 
         // Usuários que receberam repasses
         $usuariosComRepasses = collect();
-        if (Schema::hasTable('repasses')) {
+        if (Schema::hasTable('REPASSES')) {
             $usuariosComRepasses = Usuario::select('id', 'nome')->whereExists(function ($query) use ($dataInicio, $dataFim) {
                 $query->select(DB::raw(1))
-                    ->from('repasses')
-                    ->whereRaw('repasses.usuario_repasse_id = usuarios.id')
-                    ->where('repasses.status', 'ativo');
+                    ->from('REPASSES')
+                    ->whereRaw('REPASSES.usuario_repasse_id = USUARIOS.id')
+                    ->where('REPASSES.status', 'ativo');
 
                 if ($dataInicio) {
-                    $query->where('repasses.created_at', '>=', $dataInicio);
+                    $query->where('REPASSES.created_at', '>=', $dataInicio);
                 }
 
                 if ($dataFim) {
-                    $query->where('repasses.created_at', '<=', $dataFim);
+                    $query->where('REPASSES.created_at', '<=', $dataFim);
                 }
             })->get();
         }
@@ -410,36 +410,36 @@ class FinanceiroController extends Controller
             : Carbon::now()->endOfDay();
 
         // Relatório de repasses com joins otimizados
-        $repasses = DB::table('repasses')
-            ->join('usuarios as vendedor', 'repasses.vendedor_id', '=', 'vendedor.id')
-            ->join('usuarios as receptor', 'repasses.usuario_repasse_id', '=', 'receptor.id')
+        $repasses = DB::table('REPASSES')
+            ->join('USUARIOS as vendedor', 'REPASSES.vendedor_id', '=', 'vendedor.id')
+            ->join('USUARIOS as receptor', 'REPASSES.usuario_repasse_id', '=', 'receptor.id')
             ->select([
-                'repasses.*',
+                'REPASSES.*',
                 'vendedor.nome as vendedor_nome',
                 'receptor.nome as receptor_nome'
             ])
-            ->whereBetween('repasses.created_at', [$dataInicio, $dataFim])
+            ->whereBetween('REPASSES.created_at', [$dataInicio, $dataFim])
             ->when($request->filled('vendedor_id'), function ($query) use ($request) {
-                return $query->where('repasses.vendedor_id', $request->vendedor_id);
+                return $query->where('REPASSES.vendedor_id', $request->vendedor_id);
             })
             ->when($request->filled('status_repasse'), function ($query) use ($request) {
-                return $query->where('repasses.status', $request->status_repasse);
+                return $query->where('REPASSES.status', $request->status_repasse);
             })
-            ->orderBy('repasses.created_at', 'desc')
+            ->orderBy('REPASSES.created_at', 'desc')
             ->paginate(50);
 
         // Estatísticas do período
         $estatisticas = [
             'total_repasses' => $repasses->total(),
-            'valor_total_repassado' => DB::table('repasses')
+            'valor_total_repassado' => DB::table('REPASSES')
                 ->whereBetween('created_at', [$dataInicio, $dataFim])
                 ->where('status', 'ativo')
                 ->sum('valor_total'),
-            'media_repasse' => DB::table('repasses')
+            'media_repasse' => DB::table('REPASSES')
                 ->whereBetween('created_at', [$dataInicio, $dataFim])
                 ->where('status', 'ativo')
                 ->avg('valor_total'),
-            'vendedores_ativos' => DB::table('repasses')
+            'vendedores_ativos' => DB::table('REPASSES')
                 ->whereBetween('created_at', [$dataInicio, $dataFim])
                 ->distinct('vendedor_id')
                 ->count(),
@@ -463,21 +463,21 @@ class FinanceiroController extends Controller
             ? Carbon::createFromFormat('d/m/Y', $request->data_fim)->endOfDay()
             : Carbon::now()->endOfDay();
 
-        $repasses = DB::table('repasses')
-            ->join('usuarios as vendedor', 'repasses.vendedor_id', '=', 'vendedor.id')
-            ->join('usuarios as receptor', 'repasses.usuario_repasse_id', '=', 'receptor.id')
+        $repasses = DB::table('REPASSES')
+            ->join('USUARIOS as vendedor', 'REPASSES.vendedor_id', '=', 'vendedor.id')
+            ->join('USUARIOS as receptor', 'REPASSES.usuario_repasse_id', '=', 'receptor.id')
             ->select([
-                'repasses.created_at as data_repasse',
+                'REPASSES.created_at as data_repasse',
                 'vendedor.nome as vendedor',
                 'receptor.nome as receptor',
-                'repasses.valor_limpo',
-                'repasses.valor_sujo',
-                'repasses.valor_total',
-                'repasses.status',
-                'repasses.observacoes'
+                'REPASSES.valor_limpo',
+                'REPASSES.valor_sujo',
+                'REPASSES.valor_total',
+                'REPASSES.status',
+                'REPASSES.observacoes'
             ])
-            ->whereBetween('repasses.created_at', [$dataInicio, $dataFim])
-            ->orderBy('repasses.created_at', 'desc')
+            ->whereBetween('REPASSES.created_at', [$dataInicio, $dataFim])
+            ->orderBy('REPASSES.created_at', 'desc')
             ->get();
 
         $filename = 'relatorio_repasses_' . $dataInicio->format('Y-m-d') . '_' . $dataFim->format('Y-m-d') . '.csv';
@@ -534,18 +534,18 @@ class FinanceiroController extends Controller
         $usuariosComVendas = Usuario::select('id', 'nome')->whereExists(function ($query) {
             $query->select(DB::raw(1))
                 ->from('FILA_ESPERA')
-                ->whereRaw('FILA_ESPERA.usuario_id = usuarios.id')
+                ->whereRaw('FILA_ESPERA.usuario_id = USUARIOS.id')
                 ->where('FILA_ESPERA.status', FilaEspera::STATUS_CONCLUIDO);
         })->get();
 
         // Usuários que receberam repasses
         $usuariosComRepasses = collect();
-        if (Schema::hasTable('repasses')) {
+        if (Schema::hasTable('REPASSES')) {
             $usuariosComRepasses = Usuario::select('id', 'nome')->whereExists(function ($query) {
                 $query->select(DB::raw(1))
-                    ->from('repasses')
-                    ->whereRaw('repasses.usuario_repasse_id = usuarios.id')
-                    ->where('repasses.status', 'ativo');
+                    ->from('REPASSES')
+                    ->whereRaw('REPASSES.usuario_repasse_id = USUARIOS.id')
+                    ->where('REPASSES.status', 'ativo');
             })->get();
         }
 

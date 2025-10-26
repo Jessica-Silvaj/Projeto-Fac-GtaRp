@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Administracao\Sistema\ConfiguracaoAnomaliaController;
 use App\Http\Controllers\AdmPerfilController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
@@ -118,8 +119,8 @@ Route::middleware('auth.check')->group(function () {
             Route::get('permissoes/edit/{id?}', [PermissoesController::class, 'edit'])->name('permissoes.edit');
             Route::delete('permissoes/delete/{id}', [PermissoesController::class, 'destroy'])->name('permissoes.destroy');
             Route::post('permissoes/store', [PermissoesController::class, 'store'])->name('permissoes.store');
-            Route::get('configuracao/anomalia', [\App\Http\Controllers\Administracao\Sistema\ConfiguracaoAnomaliaController::class, 'edit'])->name('configuracao.anomalia.edit');
-            Route::post('configuracao/anomalia', [\App\Http\Controllers\Administracao\Sistema\ConfiguracaoAnomaliaController::class, 'update'])->name('configuracao.anomalia.update');
+            Route::get('configuracao/anomalia', [ConfiguracaoAnomaliaController::class, 'edit'])->name('configuracao.anomalia.edit');
+            Route::post('configuracao/anomalia', [ConfiguracaoAnomaliaController::class, 'update'])->name('configuracao.anomalia.update');
         });
     });
 
@@ -171,7 +172,6 @@ Route::middleware('auth.check')->group(function () {
         Route::get('/', [App\Http\Controllers\FinanceiroController::class, 'index'])->name('index');
         Route::get('dashboard', [App\Http\Controllers\FinanceiroController::class, 'dashboard'])->name('dashboard');
         Route::get('dashboard/api', [App\Http\Controllers\FinanceiroController::class, 'dashboardApi'])->name('dashboard.api');
-
         Route::get('relatorio', [App\Http\Controllers\FinanceiroController::class, 'relatorio'])->name('relatorio');
         Route::get('relatorio/exportar', [App\Http\Controllers\FinanceiroController::class, 'exportarRelatorio'])->name('relatorio.exportar');
         Route::get('notificacoes', [App\Http\Controllers\FinanceiroController::class, 'notificacoes'])->name('notificacoes');

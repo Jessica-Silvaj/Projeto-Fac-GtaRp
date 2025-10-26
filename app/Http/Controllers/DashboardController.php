@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use App\Models\FilaEspera;
 
 class DashboardController extends Controller
@@ -37,11 +38,28 @@ class DashboardController extends Controller
             return Gate::forUser($usuario)->allows('acesso', $permissao);
         };
 
+        // Cache das contagens para reduzir queries
+        $cacheKey = 'dashboard_counts_' . ($request->user()->id ?? 'guest');
+        $cacheTtl = 300; // 5 minutos
+
+        // Cache das contagens principais
+        $counts = Cache::remember($cacheKey, $cacheTtl, function () {
+            return [
+                'usuarios' => Usuario::count(),
+                'perfis_ativos' => Perfil::where('ativo', 1)->count(),
+                'funcoes_ativas' => Funcao::where('ativo', 1)->count(),
+                'baus_ativos' => Baus::where('ativo', 1)->count(),
+                'itens_ativos' => Itens::where('ativo', 1)->count(),
+                'organizacoes' => \App\Models\Organizacao::where('ativo', 1)->count(),
+                'produtos' => Produto::where('ativo', 1)->count(),
+            ];
+        });
+
         // cards com cor, ícone, label, descrição e value
         $cards = [
             [
                 'label' => 'Usuários',
-                'value' => Usuario::count(),
+                'value' => $counts['usuarios'],
                 'icon' => 'ti-user',
                 'description' => 'Contas cadastradas',
                 'color' => 'linear-gradient(135deg,#6366f1,#06b6d4)',
@@ -49,7 +67,7 @@ class DashboardController extends Controller
             ],
             [
                 'label' => 'Perfis ativos',
-                'value' => Perfil::where('ativo', 1)->count(),
+                'value' => $counts['perfis_ativos'],
                 'icon' => 'ti-id-badge',
                 'description' => 'Perfis liberados',
                 'color' => 'linear-gradient(135deg,#f59e0b,#ef4444)',
@@ -57,7 +75,7 @@ class DashboardController extends Controller
             ],
             [
                 'label' => 'Funções ativas',
-                'value' => Funcao::where('ativo', 1)->count(),
+                'value' => $counts['funcoes_ativas'],
                 'icon' => 'ti-briefcase',
                 'description' => 'Funções disponíveis',
                 'color' => 'linear-gradient(135deg,#10b981,#06b6d4)',
@@ -65,7 +83,7 @@ class DashboardController extends Controller
             ],
             [
                 'label' => 'Baús ativos',
-                'value' => Baus::where('ativo', 1)->count(),
+                'value' => $counts['baus_ativos'],
                 'icon' => 'ti-archive',
                 'description' => 'Baús liberados',
                 'color' => 'linear-gradient(135deg,#7c3aed,#4f46e5)',
@@ -73,7 +91,7 @@ class DashboardController extends Controller
             ],
             [
                 'label' => 'Itens ativos',
-                'value' => Itens::where('ativo', 1)->count(),
+                'value' => $counts['itens_ativos'],
                 'icon' => 'ti-package',
                 'description' => 'Itens cadastrados',
                 'color' => 'linear-gradient(135deg,#06b6d4,#0ea5a3)',
@@ -81,7 +99,7 @@ class DashboardController extends Controller
             ],
             [
                 'label' => 'Organizações',
-                'value' => \App\Models\Organizacao::where('ativo', 1)->count(),
+                'value' => $counts['organizacoes'],
                 'icon' => 'ti-home',
                 'description' => 'Organizações cadastradas',
                 'color' => 'linear-gradient(135deg,#8b5cf6,#a855f7)',
@@ -89,7 +107,7 @@ class DashboardController extends Controller
             ],
             [
                 'label' => 'Produtos',
-                'value' => Produto::where('ativo', 1)->count(),
+                'value' => $counts['produtos'],
                 'icon' => 'ti-truck',
                 'description' => 'Produtos de fabricação',
                 'color' => 'linear-gradient(135deg,#ef4444,#f97316)',
