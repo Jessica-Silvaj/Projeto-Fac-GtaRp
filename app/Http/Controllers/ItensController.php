@@ -6,6 +6,7 @@ use App\Services\Contracts\ItensServiceInterface;
 use App\Services\Contracts\LoggingServiceInterface;
 use App\Http\Requests\ItensRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ItensController extends Controller
 {
@@ -17,13 +18,23 @@ class ItensController extends Controller
     public function index(Request $request)
     {
         $listItens = $this->service->listar($request);
-        return view('administracao.estoque.itens.index', compact('listItens'));
+        $result = view('administracao.estoque.itens.index', compact('listItens'));
+
+        // Fechar conexão MySQL
+        DB::disconnect('mysql');
+
+        return $result;
     }
 
     public function edit($id = 0)
     {
         $data = $this->service->dadosEdicao((int) $id);
-        return view('administracao.estoque.itens.edit', $data);
+        $result = view('administracao.estoque.itens.edit', $data);
+
+        // Fechar conexão MySQL
+        DB::disconnect('mysql');
+
+        return $result;
     }
 
     public function store(ItensRequest $request)

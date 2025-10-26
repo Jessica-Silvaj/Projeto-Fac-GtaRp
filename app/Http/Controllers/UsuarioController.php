@@ -6,14 +6,14 @@ use App\Http\Requests\UsuarioRequest;
 use App\Services\Contracts\LoggingServiceInterface;
 use App\Services\Contracts\UsuarioServiceInterface;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class UsuarioController extends Controller
 {
     public function __construct(
         private UsuarioServiceInterface $service,
         private LoggingServiceInterface $logger
-    ) {
-    }
+    ) {}
 
     public function index(Request $request)
     {
@@ -21,13 +21,23 @@ class UsuarioController extends Controller
         $funcoes = \App\Models\Funcao::obterTodos();
         $situacao = \App\Models\Situacao::obterTodos();
         $perfil = \App\Models\Perfil::obterTodos();
-        return view('administracao.rh.usuario.index', compact('situacao', 'funcoes', 'perfil', 'listUsuario'));
+        $result = view('administracao.rh.usuario.index', compact('situacao', 'funcoes', 'perfil', 'listUsuario'));
+
+        // Fechar conexão MySQL
+        DB::disconnect('mysql');
+
+        return $result;
     }
 
     public function edit(Request $request, $id = 0)
     {
         $data = $this->service->dadosEdicao($request, (int) $id);
-        return view('administracao.rh.usuario.edit', $data);
+        $result = view('administracao.rh.usuario.edit', $data);
+
+        // Fechar conexão MySQL
+        DB::disconnect('mysql');
+
+        return $result;
     }
 
     public function store(UsuarioRequest $request)
@@ -52,4 +62,3 @@ class UsuarioController extends Controller
         }
     }
 }
-

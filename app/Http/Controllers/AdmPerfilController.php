@@ -6,25 +6,35 @@ use App\Http\Requests\PerfilAdmRequest;
 use App\Services\Contracts\LoggingServiceInterface;
 use App\Services\Contracts\PerfilAdmServiceInterface;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AdmPerfilController extends Controller
 {
     public function __construct(
         private PerfilAdmServiceInterface $service,
         private LoggingServiceInterface $logger
-    ) {
-    }
+    ) {}
 
     public function index(Request $request)
     {
         $listPerfil = $this->service->listar($request);
-        return view('administracao.rh.perfil.index', compact('listPerfil'));
+        $result = view('administracao.rh.perfil.index', compact('listPerfil'));
+
+        // Fechar conexão MySQL
+        DB::disconnect('mysql');
+
+        return $result;
     }
 
     public function edit($id = 0)
     {
         $data = $this->service->dadosEdicao((int) $id);
-        return view('administracao.rh.perfil.edit', $data);
+        $result = view('administracao.rh.perfil.edit', $data);
+
+        // Fechar conexão MySQL
+        DB::disconnect('mysql');
+
+        return $result;
     }
 
     public function store(PerfilAdmRequest $request)
@@ -49,4 +59,3 @@ class AdmPerfilController extends Controller
         }
     }
 }
-

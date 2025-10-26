@@ -8,6 +8,7 @@ use App\Http\Requests\ProdutoRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use App\Models\Itens;
+use Illuminate\Support\Facades\DB;
 
 class ProdutoController extends Controller
 {
@@ -19,13 +20,23 @@ class ProdutoController extends Controller
     public function index(Request $request)
     {
         $listProdutos = $this->service->listar($request);
-        return view('administracao.fabricacao.produtos.index', compact('listProdutos'));
+        $result = view('administracao.fabricacao.produtos.index', compact('listProdutos'));
+
+        // Fechar conexão MySQL
+        DB::disconnect('mysql');
+
+        return $result;
     }
 
     public function edit($id = 0)
     {
         $data = $this->service->dadosEdicao((int) $id);
-        return view('administracao.fabricacao.produtos.edit', $data);
+        $result = view('administracao.fabricacao.produtos.edit', $data);
+
+        // Fechar conexão MySQL
+        DB::disconnect('mysql');
+
+        return $result;
     }
 
     public function store(ProdutoRequest $request)

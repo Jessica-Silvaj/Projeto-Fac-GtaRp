@@ -6,6 +6,7 @@ use App\Http\Requests\OrganizacaoRequest;
 use App\Services\Contracts\OrganizacaoServiceInterface;
 use App\Services\Contracts\LoggingServiceInterface;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class OrganizacaoController extends Controller
 {
@@ -17,13 +18,23 @@ class OrganizacaoController extends Controller
     public function index(Request $request)
     {
         $list = $this->service->listar($request);
-        return view('administracao.fabricacao.organizacao.index', compact('list'));
+        $result = view('administracao.fabricacao.organizacao.index', compact('list'));
+
+        // Fechar conexão MySQL
+        DB::disconnect('mysql');
+
+        return $result;
     }
 
     public function edit($id = 0)
     {
         $data = $this->service->dadosEdicao((int) $id);
-        return view('administracao.fabricacao.organizacao.edit', $data);
+        $result = view('administracao.fabricacao.organizacao.edit', $data);
+
+        // Fechar conexão MySQL
+        DB::disconnect('mysql');
+
+        return $result;
     }
 
     public function store(OrganizacaoRequest $request)

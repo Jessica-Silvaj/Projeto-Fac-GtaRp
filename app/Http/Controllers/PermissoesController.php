@@ -6,6 +6,7 @@ use App\Services\Contracts\LoggingServiceInterface;
 use App\Services\Contracts\PermissoesServiceInterface;
 use Illuminate\Http\Request;
 use App\Http\Requests\PermissaoRequest;
+use Illuminate\Support\Facades\DB;
 
 class PermissoesController extends Controller
 {
@@ -22,13 +23,23 @@ class PermissoesController extends Controller
     {
         $listPermissoes = $this->service->listar($request);
         $filtros = $this->service->filtrosIndex();
-        return view('administracao.sistema.permissoes.index', array_merge(['listPermissoes' => $listPermissoes], $filtros));
+        $result = view('administracao.sistema.permissoes.index', array_merge(['listPermissoes' => $listPermissoes], $filtros));
+
+        // Fechar conexão MySQL
+        DB::disconnect('mysql');
+
+        return $result;
     }
 
     public function edit(Request $request, $id = 0)
     {
         $data = $this->service->dadosEdicao($request, (int) $id);
-        return view('administracao.sistema.permissoes.edit', $data);
+        $result = view('administracao.sistema.permissoes.edit', $data);
+
+        // Fechar conexão MySQL
+        DB::disconnect('mysql');
+
+        return $result;
     }
 
     public function store(PermissaoRequest $request)

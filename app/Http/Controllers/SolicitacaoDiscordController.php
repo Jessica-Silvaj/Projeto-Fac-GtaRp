@@ -9,11 +9,11 @@ use App\Services\Contracts\LoggingServiceInterface;
 use App\Services\LancamentoService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -55,12 +55,17 @@ class SolicitacaoDiscordController extends Controller
             $statusResumo[$statusPadrao] = $statusResumo[$statusPadrao] ?? 0;
         }
 
-        return view('controleBau.bau.solicitacoes.index', [
+        $result = view('controleBau.bau.solicitacoes.index', [
             'solicitacoes' => $solicitacoes,
             'statusSelecionado' => $status,
             'tipoSelecionado' => $tipo,
             'statusResumo' => $statusResumo,
         ]);
+
+        // Fechar conexão MySQL
+        DB::disconnect('mysql');
+
+        return $result;
     }
 
     public function edit(DiscordSolicitacao $solicitacao, LancamentoService $lancamentoService): View
@@ -662,5 +667,4 @@ class SolicitacaoDiscordController extends Controller
             }
         });
     }
-
 }

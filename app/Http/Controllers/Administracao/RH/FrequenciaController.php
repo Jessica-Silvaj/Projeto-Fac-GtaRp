@@ -8,6 +8,7 @@ use App\Models\Usuario;
 use App\Models\Situacao;
 use App\Models\Falta;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class FrequenciaController extends Controller
 {
@@ -84,7 +85,7 @@ class FrequenciaController extends Controller
             ->count();
         $totalPresentesHoje = $totalUsuarios - $totalFaltasHoje;
 
-        return view('administracao.rh.frequencia.index', compact(
+        $result = view('administracao.rh.frequencia.index', compact(
             'frequenciaUsuarios',
             'situacoes',
             'usuariosSelect',
@@ -96,26 +97,31 @@ class FrequenciaController extends Controller
             'totalFaltasHoje',
             'totalPresentesHoje'
         ));
+
+        // Fechar conexão MySQL
+        DB::disconnect('mysql');
+
+        return $result;
     }
 
     public function registrarFalta(Request $request)
     {
         $request->validate([
             'usuario_id' => 'required|exists:usuarios,id',
-            'data_entrada' => 'required|date|before_or_equal:today',
+            'data_falta' => 'required|date|before_or_equal:today',
             'motivo' => 'required|string|min:5|max:500'
         ], [
             'usuario_id.required' => 'Usuário é obrigatório.',
             'usuario_id.exists' => 'Usuário não encontrado.',
-            'data_entrada.required' => 'Data é obrigatória.',
-            'data_entrada.before_or_equal' => 'Não é possível registrar falta para datas futuras.',
+            'data_falta.required' => 'Data é obrigatória.',
+            'data_falta.before_or_equal' => 'Não é possível registrar falta para datas futuras.',
             'motivo.required' => 'É obrigatório informar o motivo da falta.',
             'motivo.min' => 'O motivo deve ter pelo menos 5 caracteres.'
         ]);
 
         try {
             // Verificar se já existe falta para a data
-            if (Falta::temFalta($request->usuario_id, $request->data_entrada)) {
+            if (Falta::temFalta($request->usuario_id, $request->data_falta)) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Já existe uma falta registrada para este usuário nesta data!'
@@ -123,14 +129,24 @@ class FrequenciaController extends Controller
             }
 
             // Registrar falta
-            Falta::registrarFalta($request->usuario_id, $request->data_entrada, $request->motivo);
+            Falta::registrarFalta($request->usuario_id, $request->data_falta, $request->motivo);
 
-            return response()->json(['success' => true, 'message' => 'Falta registrada com sucesso!']);
+            $result = response()->json(['success' => true, 'message' => 'Falta registrada com sucesso!']);
+
+            // Fechar conexão MySQL
+            DB::disconnect('mysql');
+
+            return $result;
         } catch (\Exception $e) {
-            return response()->json([
+            $result = response()->json([
                 'success' => false,
                 'message' => 'Erro ao registrar falta: ' . $e->getMessage()
             ], 500);
+
+            // Fechar conexão MySQL mesmo em caso de erro
+            DB::disconnect('mysql');
+
+            return $result;
         }
     }
 
@@ -141,37 +157,63 @@ class FrequenciaController extends Controller
             try {
                 $falta = Falta::findOrFail($request->falta_id);
                 $falta->delete();
-                return response()->json(['success' => true, 'message' => 'Falta removida com sucesso!']);
+
+                $result = response()->json(['success' => true, 'message' => 'Falta removida com sucesso!']);
+
+                // Fechar conexão MySQL
+                DB::disconnect('mysql');
+
+                return $result;
             } catch (\Exception $e) {
-                return response()->json([
+                $result = response()->json([
                     'success' => false,
                     'message' => 'Erro ao remover falta: ' . $e->getMessage()
                 ], 500);
+
+                // Fechar conexão MySQL mesmo em caso de erro
+                DB::disconnect('mysql');
+
+                return $result;
             }
         }
 
         // Método original por usuario_id e data
         $request->validate([
             'usuario_id' => 'required|exists:usuarios,id',
-            'data_entrada' => 'required|date'
+            'data_falta' => 'required|date'
         ]);
 
         try {
-            if (!Falta::temFalta($request->usuario_id, $request->data_entrada)) {
-                return response()->json([
+            if (!Falta::temFalta($request->usuario_id, $request->data_falta)) {
+                $result = response()->json([
                     'success' => false,
                     'message' => 'Falta não encontrada para este usuário nesta data!'
                 ], 404);
+
+                // Fechar conexão MySQL
+                DB::disconnect('mysql');
+
+                return $result;
             }
 
-            Falta::removerFalta($request->usuario_id, $request->data_entrada);
+            Falta::removerFalta($request->usuario_id, $request->data_falta);
 
-            return response()->json(['success' => true, 'message' => 'Falta removida com sucesso!']);
+            $result = response()->json(['success' => true, 'message' => 'Falta removida com sucesso!']);
+
+            // Fechar conexão MySQL
+            DB::disconnect('mysql');
+
+            return $result;
         } catch (\Exception $e) {
-            return response()->json([
+            $result = response()->json([
                 'success' => false,
                 'message' => 'Erro ao remover falta: ' . $e->getMessage()
             ], 500);
+
+            // Fechar conexão MySQL mesmo em caso de erro
+            DB::disconnect('mysql');
+
+            return $result;
         }
     }
 
@@ -210,13 +252,18 @@ class FrequenciaController extends Controller
         // Dados para filtros
         $usuarios = Usuario::where('situacao_id', 1)->orderBy('nome')->get();
 
-        return view('administracao.rh.frequencia.historico', compact(
+        $result = view('administracao.rh.frequencia.historico', compact(
             'historico',
             'usuarios',
             'dataInicio',
             'dataFim',
             'usuarioId'
         ));
+
+        // Fechar conexão MySQL
+        DB::disconnect('mysql');
+
+        return $result;
     }
 
     public function relatorio(Request $request)

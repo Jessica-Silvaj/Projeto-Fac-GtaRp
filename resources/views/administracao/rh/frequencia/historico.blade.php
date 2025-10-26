@@ -86,7 +86,6 @@
                                 <th class="text-center col-md-1">Status</th>
                                 <th class="text-left col-md-4">Motivo da Falta</th>
                                 <th class="text-center col-md-2">Registrado por</th>
-                                <th class="text-center col-md-1">Ações</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -125,21 +124,10 @@
                                             {{ $falta->registrado_por ?? auth()->user()->nome }}
                                         </small>
                                     </td>
-                                    <td class="text-center col-md-1">
-                                        <div class="text-center table-actions">
-                                            @can('acesso', 'administracao.rh.frequencia.remover.falta')
-                                                <button class="btn btn-sm btn-danger btn-remover-falta-historico"
-                                                    data-id="{{ $falta->id }}" data-usuario="{{ $falta->usuario->nome }}"
-                                                    data-data="{{ $falta->data_falta }}" title="Remover Falta">
-                                                    <i class="ti-trash"></i>
-                                                </button>
-                                            @endcan
-                                        </div>
-                                    </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6">
+                                    <td colspan="5">
                                         <div class="text-center p-4">
                                             <i class="ti-info-alt text-muted" style="font-size: 2rem;"></i>
                                             <h5 class="text-muted mt-2">Nenhum registro encontrado</h5>
@@ -191,86 +179,11 @@
 @section('script')
     <script>
         $(document).ready(function() {
+            console.log('Histórico de frequência carregado!');
+            console.log('Botões encontrados:', $('.btn-remover-falta-historico').length);
+
             // Tooltips
             $('[data-toggle="tooltip"]').tooltip();
-
-
-
-            // Remover falta do histórico
-            $(document).on('click', '.btn-remover-falta-historico', function() {
-                const faltaId = $(this).data('id');
-                const usuarioNome = $(this).data('usuario');
-                const dataFalta = $(this).data('data');
-
-                Swal.fire({
-                    title: '🗑️ Remover Falta',
-                    html: `
-                        <div class="text-center">
-                            <p><strong>Tem certeza que deseja remover esta falta?</strong></p>
-                            <div class="alert alert-warning mt-3">
-                                <strong>👤 Usuário:</strong> ${usuarioNome}<br>
-                                <strong>📅 Data:</strong> ${moment(dataFalta).format('DD/MM/YYYY')}
-                            </div>
-                            <p class="text-muted mb-0">Esta ação não pode ser desfeita</p>
-                        </div>
-                    `,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#3085d6',
-                    confirmButtonText: 'Sim, remover',
-                    cancelButtonText: 'Cancelar'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        // AJAX para remover falta
-                        $.ajax({
-                            url: '{{ route('administracao.rh.frequencia.remover.falta') }}',
-                            method: 'POST',
-                            data: {
-                                falta_id: faltaId,
-                                _token: '{{ csrf_token() }}'
-                            },
-                            beforeSend: function() {
-                                Swal.fire({
-                                    title: 'Removendo...',
-                                    text: 'Por favor, aguarde',
-                                    allowOutsideClick: false,
-                                    showConfirmButton: false,
-                                    willOpen: () => {
-                                        Swal.showLoading()
-                                    }
-                                });
-                            },
-                            success: function(response) {
-                                Swal.fire({
-                                    title: '✅ Removido!',
-                                    text: 'Falta removida com sucesso.',
-                                    icon: 'success',
-                                    timer: 2000,
-                                    showConfirmButton: false
-                                });
-                                location.reload();
-                            },
-                            error: function(xhr) {
-                                const erro = xhr.responseJSON ? xhr.responseJSON
-                                    .message : 'Erro interno do servidor';
-                                Swal.fire({
-                                    title: '❌ Erro!',
-                                    html: `
-                                        <div class="text-center">
-                                            <p><strong>Erro ao remover falta</strong></p>
-                                            <div class="alert alert-danger mt-3">
-                                                <small>${erro}</small>
-                                            </div>
-                                        </div>
-                                    `,
-                                    icon: 'error'
-                                });
-                            }
-                        });
-                    }
-                });
-            });
 
             // Animação sutil ao carregar
             $('.table tbody tr').each(function(index) {

@@ -9,6 +9,7 @@ use App\Services\Contracts\LancamentoServiceInterface;
 use App\Services\Contracts\LoggingServiceInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class LancamentoController extends Controller
@@ -16,8 +17,7 @@ class LancamentoController extends Controller
     public function __construct(
         private LancamentoServiceInterface $service,
         private LoggingServiceInterface $logger
-    ) {
-    }
+    ) {}
 
     public function index(Request $request)
     {
@@ -28,7 +28,12 @@ class LancamentoController extends Controller
     public function edit(int $id = 0)
     {
         $data = $this->service->dadosEdicao($id);
-        return view('controleBau.bau.lancamentos.edit', $data);
+        $result = view('controleBau.bau.lancamentos.edit', $data);
+
+        // Fechar conexão MySQL
+        DB::disconnect('mysql');
+
+        return $result;
     }
 
     public function store(LancamentoRequest $request)
@@ -78,7 +83,12 @@ class LancamentoController extends Controller
     public function historico(Request $request)
     {
         $data = $this->service->historico($request);
-        return view('controleBau.bau.lancamentos.historico', $data);
+        $result = view('controleBau.bau.lancamentos.historico', $data);
+
+        // Fechar conexão MySQL
+        DB::disconnect('mysql');
+
+        return $result;
     }
 
     public function historicoCsv(Request $request)
@@ -196,4 +206,3 @@ class LancamentoController extends Controller
         ]);
     }
 }
-

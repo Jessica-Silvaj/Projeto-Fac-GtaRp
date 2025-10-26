@@ -6,25 +6,35 @@ use App\Http\Requests\SituacaoRequest;
 use App\Services\Contracts\LoggingServiceInterface;
 use App\Services\Contracts\SituacaoServiceInterface;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class SituacaoController extends Controller
 {
     public function __construct(
         private SituacaoServiceInterface $service,
         private LoggingServiceInterface $logger
-    ) {
-    }
+    ) {}
 
     public function index(Request $request)
     {
         $listSituacao = $this->service->listar($request);
-        return view('administracao.rh.situacao.index', compact('listSituacao'));
+        $result = view('administracao.rh.situacao.index', compact('listSituacao'));
+
+        // Fechar conexão MySQL
+        DB::disconnect('mysql');
+
+        return $result;
     }
 
     public function edit($id = 0)
     {
         $data = $this->service->dadosEdicao((int) $id);
-        return view('administracao.rh.situacao.edit', $data);
+        $result = view('administracao.rh.situacao.edit', $data);
+
+        // Fechar conexão MySQL
+        DB::disconnect('mysql');
+
+        return $result;
     }
 
     public function store(SituacaoRequest $request)
@@ -49,4 +59,3 @@ class SituacaoController extends Controller
         }
     }
 }
-

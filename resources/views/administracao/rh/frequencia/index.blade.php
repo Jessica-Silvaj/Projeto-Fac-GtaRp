@@ -399,7 +399,7 @@
 
                 const dados = {
                     usuario_id: $('#usuarioIdFalta').val(),
-                    data_entrada: $('#dataFalta').val(),
+                    data_falta: $('#dataFalta').val(),
                     motivo: $('#motivoFalta').val(),
                     _token: '{{ csrf_token() }}'
                 };
@@ -450,7 +450,7 @@
                     method: 'POST',
                     data: {
                         usuario_id: usuarioId,
-                        data_entrada: '{{ $dataFiltro }}',
+                        data_falta: '{{ $dataFiltro }}',
                         _token: '{{ csrf_token() }}'
                     },
                     success: function(response) {

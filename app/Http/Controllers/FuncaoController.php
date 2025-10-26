@@ -6,6 +6,7 @@ use App\Services\Contracts\FuncaoServiceInterface;
 use App\Services\Contracts\LoggingServiceInterface;
 use App\Http\Requests\FuncaoRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class FuncaoController extends Controller
 {
@@ -17,13 +18,23 @@ class FuncaoController extends Controller
     public function index(Request $request)
     {
         $listFuncao = $this->service->listar($request);
-        return view('administracao.rh.funcao.index', compact('listFuncao'));
+        $result = view('administracao.rh.funcao.index', compact('listFuncao'));
+
+        // Fechar conexão MySQL
+        DB::disconnect('mysql');
+
+        return $result;
     }
 
     public function edit($id = 0)
     {
         $data = $this->service->dadosEdicao((int) $id);
-        return view('administracao.rh.funcao.edit', $data);
+        $result = view('administracao.rh.funcao.edit', $data);
+
+        // Fechar conexão MySQL
+        DB::disconnect('mysql');
+
+        return $result;
     }
 
     public function store(FuncaoRequest $request)
