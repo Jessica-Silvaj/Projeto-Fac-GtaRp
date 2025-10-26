@@ -196,7 +196,7 @@
                                         <tr>
                                             <td>{{ $row['item_nome'] }}</td>
                                             <td>{{ $row['bau_nome'] }}</td>
-                                            <td class="text-center text-primary">
+                                            <td class="text-center text-white">
                                                 {{ number_format($row['quantidade'], 0, ',', '.') }}</td>
                                             <td class="text-center">
                                                 @can('acesso', 'bau.lancamentos.estoque')

@@ -48,6 +48,16 @@ class Usuario extends Authenticatable
             ->withPivot('data_atribuicao');
     }
 
+    public function filaEspera()
+    {
+        return $this->hasMany(FilaEspera::class, 'usuario_id', 'id');
+    }
+
+    public function lancamentos()
+    {
+        return $this->hasMany(Lancamento::class, 'usuario_id', 'id');
+    }
+
     public static function realizarLogin($obj)
     {
         $usuario = self::where("matricula", $obj['matricula'] ?? null)->first();

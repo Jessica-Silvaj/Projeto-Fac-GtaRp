@@ -23,12 +23,7 @@ class Lancamento extends Model
         'bau_origem_id',
         'bau_destino_id',
         'observacao',
-        'fabricacao',
         'data_atribuicao',
-    ];
-
-    protected $casts = [
-        'fabricacao' => 'boolean',
     ];
 
     public function item()
@@ -51,4 +46,3 @@ class Lancamento extends Model
         return $this->belongsTo(Usuario::class, 'usuario_id');
     }
 }
-

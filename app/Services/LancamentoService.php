@@ -25,14 +25,14 @@ class LancamentoService implements LancamentoServiceInterface
 
     public function listar(Request $request): LengthAwarePaginator
     {
-        $lista = Lancamento::query()
+        // Usar paginação nativa para melhor performance com grandes volumes
+        return Lancamento::query()
             ->with(['item', 'bauOrigem', 'bauDestino', 'usuario'])
             ->when($request->filled('tipo'), fn($q) => $q->where('tipo', $request->tipo))
             ->when($request->filled('itens_id'), fn($q) => $q->where('itens_id', (int) $request->itens_id))
             ->orderByDesc('data_atribuicao')
-            ->get();
-
-        return Utils::arrayPaginator($lista, route('bau.lancamentos.index'), $request, 10);
+            ->paginate(25)
+            ->appends($request->query());
     }
 
     public function dadosEdicao(int $id = 0): array
@@ -51,7 +51,18 @@ class LancamentoService implements LancamentoServiceInterface
             $itensId = (int) ($dados['itens_id'] ?? 0);
             $quantidade = (int) ($dados['quantidade'] ?? 0);
             $observacao = Str::upper($dados['observacao'] ?? '');
-            $fabricacao = filter_var($dados['fabricacao'] ?? false, FILTER_VALIDATE_BOOLEAN) ? 1 : 0;
+            $fabricacao = filter_var($dados['fabricacao'] ?? false, FILTER_VALIDATE_BOOLEAN);
+            $venda = filter_var($dados['venda'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
+            // Se é fabricação, adicionar prefixo na observação para identificar
+            if ($fabricacao && !str_contains($observacao, 'FABRICACAO')) {
+                $observacao = 'FABRICACAO: ' . $observacao;
+            }
+
+            // Se é venda, garantir que tenha a tag de vendas
+            if ($venda && !str_contains($observacao, 'VENDA')) {
+                $observacao = '[VENDAS] ' . $observacao;
+            }
 
             // Normaliza origem/destino conforme tipo
             $origem = $dados['bau_origem_id'] ?? null;
@@ -73,7 +84,6 @@ class LancamentoService implements LancamentoServiceInterface
                     'bau_origem_id' => $origem,
                     'bau_destino_id' => $destino,
                     'observacao' => $observacao,
-                    'fabricacao' => $fabricacao,
                 ]);
                 $this->logger->cadastro('LANCAMENTO', 'INSERIR', 'TIPO: ' . $obj->tipo . ', QTD: ' . $obj->quantidade, $obj->id);
             } else {
@@ -86,12 +96,11 @@ class LancamentoService implements LancamentoServiceInterface
                     'bau_origem_id' => $origem,
                     'bau_destino_id' => $destino,
                     'observacao' => $observacao ?: $obj->observacao,
-                    'fabricacao' => $fabricacao,
                 ]);
                 $this->logger->cadastro('LANCAMENTO', 'ATUALIZAR', 'TIPO: ' . $obj->tipo . ', QTD: ' . $obj->quantidade, $obj->id);
             }
 
-            $this->registrarMovimentosComponentes($obj, (bool) $fabricacao);
+            $this->registrarMovimentosComponentes($obj, $fabricacao);
 
             return $obj;
         });
@@ -205,7 +214,6 @@ class LancamentoService implements LancamentoServiceInterface
                 'bau_origem_id' => $bauConsumo,
                 'bau_destino_id' => null,
                 'observacao' => $observacao,
-                'fabricacao' => 0,
             ]);
 
             $this->logger->cadastro(
@@ -694,7 +702,7 @@ class LancamentoService implements LancamentoServiceInterface
             ->whereDate('data_atribuicao', '>=', $start)
             ->whereDate('data_atribuicao', '<=', $end)
             ->orderByDesc('data_atribuicao')
-            ->limit(100)
+            ->limit(200) // Aumentado de 100 para 200 para dashboard
             ->get();
 
         $detalhes = $q->map(function ($r) {

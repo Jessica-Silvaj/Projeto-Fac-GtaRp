@@ -37,6 +37,7 @@ return [
         'canal_saida_id' => env('CANAL_SAIDA_ID'),
         'canal_aprovada_id' => env('CANAL_MENSAGEM_APROVADA'),
         'canal_reprovada_id' => env('CANAL_MENSAGEM_REPROVADA'),
+        'canal_vendas_id' => env('CANAL_VENDAS_ID'),
         'webhook_token' => env('DISCORD_WEBHOOK_TOKEN'),
         'webhook_entradas' => env('DISCORD_WEBHOOK_ENTRADAS'),
         'webhook_saidas' => env('DISCORD_WEBHOOK_SAIDAS'),

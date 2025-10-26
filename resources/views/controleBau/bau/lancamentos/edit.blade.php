@@ -70,7 +70,9 @@
                         </div>
                         <div class="form-group form-default form-static-label col-md-2" id="grupo-fabricacao">
                             @php
-                                $fabricacaoValor = (int) old('fabricacao', $lancamento->fabricacao ?? 0);
+                                // Detecta fabricação baseado na observação já que a coluna não existe no banco
+                                $isFabricacao = str_contains(strtoupper($lancamento->observacao ?? ''), 'FABRICACAO');
+                                $fabricacaoValor = (int) old('fabricacao', $isFabricacao ? 1 : 0);
                             @endphp
                             <select name="fabricacao" id="fabricacao"
                                 class="form-control select2 @error('fabricacao') is-invalid @enderror">

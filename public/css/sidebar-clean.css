@@ -1,0 +1,204 @@
+/*
+ * Sidebar Otimizada - Solução Limpa e Elegante
+ * Corrige posicionamento, espaçamento e adiciona scroll suave
+ */
+
+/* === 1. CORREÇÃO DO POSICIONAMENTO (GAP NAVBAR-SIDEBAR) === */
+.pcoded[theme-layout="vertical"] .pcoded-navbar {
+    top: 56px;
+    margin-top: 0;
+    border-top: none;
+}
+
+.pcoded .header-navbar {
+    margin-bottom: 0;
+    border-bottom: none;
+}
+
+/* === CORREÇÃO DO PAGE-HEADER - COLADO COM NAVBAR === */
+.pcoded .pcoded-content .page-header {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+}
+
+.pcoded .pcoded-main-container {
+    margin-top: 0;
+    padding-top: 0;
+}
+
+.pcoded .pcoded-wrapper {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Remove gap específico do pcoded-wrapper */
+.pcoded[theme-layout="vertical"] .pcoded-wrapper {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+/* Remove espaçamento extra entre navbar e conteúdo */
+.pcoded .pcoded-container.navbar-wrapper+.pcoded-main-container {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+/* === 2. OTIMIZAÇÃO DO SCROLL === */
+.pcoded .pcoded-navbar .pcoded-inner-navbar {
+    height: calc(100vh - 56px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 8px 0 20px 0;
+}
+
+/* Scrollbar personalizado e discreto */
+.pcoded .pcoded-navbar .pcoded-inner-navbar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.pcoded .pcoded-navbar .pcoded-inner-navbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.pcoded .pcoded-navbar .pcoded-inner-navbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 2px;
+}
+
+.pcoded .pcoded-navbar .pcoded-inner-navbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+/* === 3. ESPAÇAMENTO ELEGANTE DOS LABELS === */
+.pcoded .pcoded-navbar .pcoded-navigation-label {
+    padding: 0px 15px 4px 1px;
+    margin-bottom: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    opacity: 0.85;
+    line-height: 1.2;
+}
+
+/* Primeira seção sem espaçamento extra */
+.pcoded .pcoded-navbar .pcoded-inner-navbar>.pcoded-navigation-label:first-child {
+    margin-top: 0;
+}
+
+/* Espaçamento entre seções com linha separadora */
+.pcoded .pcoded-navbar .pcoded-item+.pcoded-navigation-label {
+    margin-top: 15px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(243, 156, 18, 0.6);
+    /* Linha amarela suave */
+    position: relative;
+}
+
+/* Efeito visual sutil na linha separadora */
+.pcoded .pcoded-navbar .pcoded-item+.pcoded-navigation-label::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: 20px;
+    right: 20px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #f39c12, transparent);
+    opacity: 0.7;
+}
+
+/* === 4. COMPACTAÇÃO DOS ITENS DE MENU === */
+.pcoded .pcoded-navbar .pcoded-item>li>a {
+    padding: 6px 15px;
+    margin: 0;
+    min-height: auto;
+}
+
+.pcoded .pcoded-navbar .pcoded-item .pcoded-submenu li>a {
+    padding: 4px 15px 4px 50px;
+    font-size: 13px;
+    min-height: auto;
+}
+
+/* === 5. RESPONSIVIDADE === */
+@media (max-width: 768px) {
+    .pcoded .pcoded-navbar .pcoded-navigation-label {
+        padding: 5px 12px 3px 12px;
+        font-size: 9px;
+    }
+
+    .pcoded .pcoded-navbar .pcoded-item+.pcoded-navigation-label {
+        margin-top: 12px;
+        padding-top: 6px;
+    }
+
+    .pcoded .pcoded-navbar .pcoded-item>li>a {
+        padding: 6px 12px;
+    }
+
+    .pcoded .pcoded-navbar .pcoded-item .pcoded-submenu li>a {
+        padding: 5px 12px 5px 45px;
+    }
+}
+
+/* === 6. MELHORIAS VISUAIS === */
+.pcoded .pcoded-navbar .pcoded-item {
+    margin-bottom: 0;
+}
+
+.pcoded .pcoded-navbar .pcoded-item>li {
+    margin: 0;
+    padding: 0;
+}
+
+.pcoded .pcoded-navbar ul {
+    padding: 0;
+    margin: 0;
+}
+
+.pcoded .pcoded-navbar li {
+    margin: 0;
+}
+
+/* Transições suaves */
+.pcoded .pcoded-navbar .pcoded-navigation-label,
+.pcoded .pcoded-navbar .pcoded-item>li>a {
+    transition: all 0.2s ease;
+}
+
+/* Scroll suave */
+.pcoded .pcoded-navbar .pcoded-inner-navbar {
+    scroll-behavior: smooth;
+}
+
+/* Remove elementos vazios */
+.pcoded .pcoded-navbar .pcoded-item:empty {
+    display: none;
+}
+
+/* Remove pseudo-elemento ::after do pcoded-item */
+.pcoded .pcoded-navbar .pcoded-item::after {
+    display: none !important;
+}
+
+/* Remove caractere BOM (Byte Order Mark) invisível */
+.pcoded-wrapper::before {
+    content: none !important;
+    display: none !important;
+}
+
+.pcoded-wrapper {
+    font-size: 0;
+}
+
+.pcoded-wrapper>* {
+    font-size: initial;
+}
+
+/* Remove qualquer texto ou espaço invisível */
+.pcoded-wrapper:empty::before {
+    display: none !important;
+}

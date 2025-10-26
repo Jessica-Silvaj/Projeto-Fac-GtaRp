@@ -17,12 +17,16 @@ use App\Services\Contracts\ProdutoServiceInterface;
 use App\Services\ProdutoService;
 use App\Services\Contracts\BausServiceInterface;
 use App\Services\BausService;
+use App\Services\Contracts\OrganizacaoServiceInterface;
+use App\Services\Contracts\FilaEsperaServiceInterface;
 use App\Services\Contracts\UsuarioServiceInterface;
 use App\Services\UsuarioService;
 use App\Services\Contracts\SituacaoServiceInterface;
 use App\Services\SituacaoService;
 use App\Services\Contracts\PerfilAdmServiceInterface;
+use App\Services\OrganizacaoService;
 use App\Services\PerfilAdmService;
+use App\Services\FilaEsperaService;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -41,6 +45,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(UsuarioServiceInterface::class, UsuarioService::class);
         $this->app->bind(SituacaoServiceInterface::class, SituacaoService::class);
         $this->app->bind(PerfilAdmServiceInterface::class, PerfilAdmService::class);
+        $this->app->bind(OrganizacaoServiceInterface::class, OrganizacaoService::class);
+        $this->app->bind(FilaEsperaServiceInterface::class, FilaEsperaService::class);
     }
 
     /**

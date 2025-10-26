@@ -218,13 +218,44 @@
 
         {{-- KPIs --}}
         @php
+            use Illuminate\Support\Facades\Gate;
+
             $row1 = $cards_row1 ?? (isset($cards) ? array_slice($cards, 0, 3) : []);
-            $row2 = $cards_row2 ?? (isset($cards) ? array_slice($cards, 3, 3) : []);
+            $row2 = $cards_row2 ?? (isset($cards) ? array_slice($cards, 3) : []);
+
+            // Adicionar card de vendas se não existir
+            $vendasCard = [
+                'label' => 'Controle de Vendas',
+                'description' => 'Fila de pedidos',
+                'value' => ($vendasResumo['ativos'] ?? 0) + ($vendasResumo['concluidos'] ?? 0), // Soma de ativos e concluídos
+                'icon' => 'ti-shopping-cart',
+                'color' => 'linear-gradient(135deg,#06b6d4,#0ea5e9)',
+                'url' => Gate::allows('acesso', 'venda.fila.index') ? route('venda.fila.index') : null,
+            ];
+
+            // Verificar se já existe um card de vendas
+            $hasVendasCard = false;
+            foreach (array_merge($row1, $row2) as $card) {
+                if (isset($card['label']) && str_contains(strtolower($card['label']), 'venda')) {
+                    $hasVendasCard = true;
+                    break;
+                }
+            }
+
+            // Adicionar card de vendas se não existir
+            if (!$hasVendasCard) {
+                $row2[] = $vendasCard;
+            }
         @endphp
         <div class="kpi-grid">
             @foreach (array_merge($row1, $row2) as $card)
                 <div class="kpi-col">
-                    @if (!empty($card['url']))
+                    @php
+                        $hasPermission = !empty($card['url']);
+                        // Se o card tem URL, significa que já passou pela verificação de permissão no controller
+                    @endphp
+
+                    @if ($hasPermission)
                         <a href="{{ $card['url'] }}" style="text-decoration:none;color:inherit;">
                     @endif
                     <div class="kpi-card">
@@ -236,11 +267,11 @@
                             <div class="kpi-meta">{{ $card['description'] ?? '' }}</div>
                             <div class="kpi-value" data-target="{{ $card['value'] ?? 0 }}">0</div>
                         </div>
-                        @if (!empty($card['url']))
+                        @if ($hasPermission)
                             <div style="margin-left:12px"><span class="kpi-chip">Ir</span></div>
                         @endif
                     </div>
-                    @if (!empty($card['url']))
+                    @if ($hasPermission)
                         </a>
                     @endif
                 </div>
@@ -254,10 +285,10 @@
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem;">
                         <h5 style="margin:0;">Solicitações</h5>
                         <div>
-                            @if (Route::has('bau.lancamentos.solicitacoes.index'))
+                            @can('acesso', 'bau.lancamentos.solicitacoes.index')
                                 <a href="{{ route('bau.lancamentos.solicitacoes.index') }}"
                                     class="btn btn-sm btn-outline-primary">Ver todas</a>
-                            @endif
+                            @endcan
                         </div>
                     </div>
 
@@ -316,10 +347,10 @@
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem;">
                         <h5 style="margin:0;">Lançamentos</h5>
                         <div>
-                            @if (Route::has('bau.lancamentos.index'))
+                            @can('acesso', 'bau.lancamentos.index')
                                 <a href="{{ route('bau.lancamentos.index') }}" class="btn btn-sm btn-outline-primary">Ver
                                     todos</a>
-                            @endif
+                            @endcan
                         </div>
                     </div>
 
@@ -382,6 +413,174 @@
                             </li>
                         @empty
                             <li class="text-muted">Nenhum lançamento recente.</li>
+                        @endforelse
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        {{-- Painel Resumo de Vendas --}}
+        <div class="row">
+            <div class="col-12 mb-4">
+                <div class="card-panel">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+                        <h5 style="margin:0;"><i class="ti-shopping-cart text-primary"></i> Controle de Vendas</h5>
+                        <div>
+                            @can('acesso', 'venda.fila.create')
+                                <a href="{{ route('venda.fila.create') }}" class="btn btn-sm btn-success">
+                                    <i class="ti-plus"></i> Nova Venda
+                                </a>
+                            @endcan
+                            @can('acesso', 'venda.fila.index')
+                                <a href="{{ route('venda.fila.index') }}" class="btn btn-sm btn-outline-primary">Ver fila
+                                    completa</a>
+                            @endcan
+                            @can('acesso', 'venda.fila.historico')
+                                <a href="{{ route('venda.fila.historico') }}" class="btn btn-sm btn-outline-info">Histórico</a>
+                            @endcan
+                        </div>
+                    </div>
+
+                    {{-- Métricas Resumidas de Vendas --}}
+                    <div class="row" style="margin-bottom: 1rem;">
+                        <div class="col-lg-3 col-md-6 col-sm-6">
+                            <div
+                                style="text-align: center; padding: 1rem; background: rgba(139, 92, 246, 0.1); border-radius: 8px; border: 1px solid rgba(139, 92, 246, 0.2);">
+                                @php
+                                    use App\Models\FilaEspera;
+                                    $totalAtivos = 0;
+                                    $emAtraso = 0;
+                                    $novosHoje = 0;
+                                    $concluidos = 0;
+
+                                    // Se existir dados de vendas no dashboard
+                                    if (isset($vendasResumo)) {
+                                        $totalAtivos = $vendasResumo['ativos'] ?? 0;
+                                        $emAtraso = $vendasResumo['atraso'] ?? 0;
+                                        $novosHoje = $vendasResumo['hoje'] ?? 0;
+                                        $concluidos = $vendasResumo['concluidos'] ?? 0;
+                                    }
+                                @endphp
+                                <h4 class="text-primary mb-1" style="color: #8b5cf6 !important;">{{ $totalAtivos }}</h4>
+                                <small style="color: #8b5cf6;"><i class="ti-pulse"></i> Em Andamento</small>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6 col-sm-6">
+                            <div
+                                style="text-align: center; padding: 1rem; background: rgba(239, 68, 68, 0.1); border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.2);">
+                                <h4 class="text-danger mb-1">{{ $emAtraso }}</h4>
+                                <small class="text-danger"><i class="ti-alarm-clock"></i> Em Atraso</small>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6 col-sm-6">
+                            <div
+                                style="text-align: center; padding: 1rem; background: rgba(16, 185, 129, 0.1); border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.2);">
+                                <h4 class="text-success mb-1">{{ $novosHoje }}</h4>
+                                <small class="text-success"><i class="ti-plus"></i> Novos Hoje</small>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6 col-sm-6">
+                            <div
+                                style="text-align: center; padding: 1rem; background: rgba(6, 182, 212, 0.1); border-radius: 8px; border: 1px solid rgba(6, 182, 212, 0.2);">
+                                <h4 class="text-info mb-1">{{ $concluidos }}</h4>
+                                <small class="text-info"><i class="ti-check"></i> Concluídos</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Valor Total dos Pedidos Ativos --}}
+                    @if (isset($vendasResumo['valor_total']) && $vendasResumo['valor_total'] > 0)
+                        <div class="row" style="margin-bottom: 1rem;">
+                            <div class="col-12">
+                                <div
+                                    style="text-align: center; padding: 1rem; background: rgba(34, 197, 94, 0.1); border-radius: 8px; border: 1px solid rgba(34, 197, 94, 0.2);">
+                                    <h5 class="text-success mb-1">
+                                        <i class="ti-money"></i>
+                                        R$ {{ number_format($vendasResumo['valor_total'], 2, ',', '.') }}
+                                    </h5>
+                                    <small class="text-success">Valor Total dos Pedidos Ativos</small>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
+                    {{-- Lista de Pedidos Pendentes Recentes --}}
+                    <h6 style="margin-bottom:.5rem;">Pedidos Recentes - Aguardando Atendimento</h6>
+                    <ul class="list-unstyled small-list list-scroll" style="max-height: 300px;">
+                        @forelse($vendasPendentes ?? [] as $venda)
+                            @php
+                                $organizacao = $venda->organizacao->nome ?? ($venda->nome ?? 'N/A');
+                                $solicitante = $venda->usuario->nome ?? 'N/A';
+                                $dataPedido = $venda->data_pedido
+                                    ? \Carbon\Carbon::parse($venda->data_pedido)->format('d/m/Y')
+                                    : 'N/A';
+                                $dataEntrega = $venda->data_entrega_estimada
+                                    ? \Carbon\Carbon::parse($venda->data_entrega_estimada)->format('d/m/Y')
+                                    : 'Não definida';
+                                $statusLabel = 'Pendente';
+                                $statusColor = '#f59e0b';
+
+                                // Usa as constantes do modelo
+                                if ($venda->status === \App\Models\FilaEspera::STATUS_EM_ATENDIMENTO) {
+                                    $statusLabel = 'Em Atendimento';
+                                    $statusColor = '#6366f1';
+                                } elseif ($venda->status === \App\Models\FilaEspera::STATUS_CONCLUIDO) {
+                                    $statusLabel = 'Concluído';
+                                    $statusColor = '#10b981';
+                                } elseif ($venda->status === \App\Models\FilaEspera::STATUS_CANCELADO) {
+                                    $statusLabel = 'Cancelado';
+                                    $statusColor = '#ef4444';
+                                }
+
+                                $atrasado =
+                                    $venda->data_entrega_estimada &&
+                                    \Carbon\Carbon::parse($venda->data_entrega_estimada)->isPast();
+                            @endphp
+
+                            <li class="list-item">
+                                <div class="icon-box"
+                                    style="background: linear-gradient(135deg, {{ $statusColor }}, {{ $statusColor }}dd);">
+                                    <i class="ti-shopping-cart" style="font-size:16px"></i>
+                                </div>
+
+                                <div class="meta">
+                                    <strong
+                                        title="{{ $organizacao }}">{{ \Illuminate\Support\Str::limit($organizacao, 40) }}</strong>
+                                    <small>Solicitante: {{ $solicitante }} · Pedido: {{ $dataPedido }}</small>
+                                    <div style="margin-top:.25rem;color:var(--muted);font-size:.85rem;">
+                                        Entrega: {{ $dataEntrega }}
+                                        @if ($atrasado)
+                                            <span style="color: #ef4444; font-weight: 600;"> (ATRASADO)</span>
+                                        @endif
+                                    </div>
+                                    @if ($venda->itens && $venda->itens->count() > 0)
+                                        <div style="margin-top:.25rem;color:var(--muted);font-size:.8rem;">
+                                            {{ $venda->itens->count() }}
+                                            {{ $venda->itens->count() == 1 ? 'item' : 'itens' }}
+                                            @if (($venda->dinheiro_limpo ?? 0) + ($venda->dinheiro_sujo ?? 0) > 0)
+                                                · R$
+                                                {{ number_format(($venda->dinheiro_limpo ?? 0) + ($venda->dinheiro_sujo ?? 0), 2, ',', '.') }}
+                                            @endif
+                                        </div>
+                                    @endif
+                                </div>
+
+                                <div class="right">
+                                    <span
+                                        style="background: {{ $statusColor }}20; color: {{ $statusColor }}; padding:.25rem .5rem; border-radius:.5rem; font-size:.8rem; border: 1px solid {{ $statusColor }}40;">
+                                        {{ $statusLabel }}
+                                    </span>
+                                    @if (isset($venda->id))
+                                        <div class="text-muted" style="font-size:.85rem;margin-top:.35rem;">ID
+                                            #{{ $venda->id }}</div>
+                                    @endif
+                                </div>
+                            </li>
+                        @empty
+                            <li class="text-muted">Nenhum pedido pendente no momento.</li>
                         @endforelse
                     </ul>
                 </div>

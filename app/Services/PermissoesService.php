@@ -14,14 +14,22 @@ use Illuminate\Support\Str;
 
 class PermissoesService implements PermissoesServiceInterface
 {
-    public function __construct(private LoggingServiceInterface $logger)
-    {
-    }
+    public function __construct(private LoggingServiceInterface $logger) {}
 
     public function listar(Request $request): LengthAwarePaginator
     {
-        $lista = Permissoes::obterPorFiltros($request);
-        return Utils::arrayPaginator($lista, route('administracao.sistema.permissoes.index'), $request, 10);
+        // Usar paginação nativa do Eloquent para melhor performance
+        $query = Permissoes::query()->orderBy('nome');
+
+        if (!empty($request->nome)) {
+            $query->where('nome', 'LIKE', '%' . Str::upper($request->nome) . '%');
+        }
+
+        if ($request->filled('ativo')) {
+            $query->where('ativo', $request->ativo);
+        }
+
+        return $query->paginate(10)->appends($request->query());
     }
 
     public function dadosEdicao(Request $request, int $id = 0): array
@@ -36,7 +44,7 @@ class PermissoesService implements PermissoesServiceInterface
         $funcoes = Funcao::obterTodos();
 
         $selecionadas = collect(old('funcoes', $permissoes->funcoes->pluck('id')->all()))
-            ->map(fn ($v) => (int) $v)
+            ->map(fn($v) => (int) $v)
             ->all();
 
         return compact('permissoes', 'selecionadas', 'funcoes');
@@ -66,8 +74,8 @@ class PermissoesService implements PermissoesServiceInterface
 
             // Funções múltiplas (sync)
             $ids = collect($dados['funcoes'] ?? [])
-                ->filter(fn ($v) => $v !== '' && $v !== null)
-                ->map(fn ($v) => (int) $v)
+                ->filter(fn($v) => $v !== '' && $v !== null)
+                ->map(fn($v) => (int) $v)
                 ->unique()
                 ->values()
                 ->all();

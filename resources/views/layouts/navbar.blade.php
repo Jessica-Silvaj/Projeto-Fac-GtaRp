@@ -78,6 +78,46 @@
                         </ul>
                     </li>
                 @endcan
+                @can('acesso', 'venda.fila.index')
+                    <li class="header-notification dropdown" id="vendas-pendentes-wrapper">
+                        <a href="#!" class="waves-effect waves-light">
+                            <i class="ti-shopping-cart" style="font-size:18px;"></i>
+                            <span class="badge bg-c-blue badge-alerta" id="vendas-pendentes-badge">0</span>
+                        </a>
+                        <ul class="show-notification" id="vendas-pendentes-dropdown">
+                            <li>
+                                <h6>Vendas Pendentes</h6>
+                                <label class="label label-primary">Processamento</label>
+                            </li>
+                            <li class="text-center text-muted py-2" id="vendas-pendentes-empty">Carregando...</li>
+                            <li class="text-center py-2" data-role="vendas-pendentes-link">
+                                <a class="btn btn-sm btn-outline-primary" href="{{ route('venda.fila.index') }}">
+                                    Abrir fila de vendas
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                @endcan
+                @can('acesso', 'financeiro.index')
+                    <li class="header-notification dropdown" id="vendas-alerta-wrapper">
+                        <a href="#!" class="waves-effect waves-light">
+                            <i class="ti-money" style="font-size:18px;"></i>
+                            <span class="badge bg-c-green badge-alerta" id="vendas-alerta-badge">0</span>
+                        </a>
+                        <ul class="show-notification" id="vendas-alerta-dropdown">
+                            <li>
+                                <h6>Repasses Pendentes</h6>
+                                <label class="label label-success">Financeiro</label>
+                            </li>
+                            <li class="text-center text-muted py-2" id="vendas-alerta-empty">Carregando...</li>
+                            <li class="text-center py-2" data-role="vendas-link">
+                                <a class="btn btn-sm btn-outline-secondary" href="{{ route('financeiro.index') }}">
+                                    Abrir financeiro
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                @endcan
                 {{-- <li class="header-notification">
                     <a href="#!" class="waves-effect waves-light">
                         <i class="ti-bell"></i>
@@ -369,6 +409,242 @@
                         '<span class="text-muted">Não foi possível carregar as solicitações.</span>';
                     empty.style.display = '';
                 });
+            });
+        </script>
+    @endonce
+@endcan
+
+@can('acesso', 'financeiro.index')
+    @once
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                var badge = document.getElementById('vendas-alerta-badge');
+                var dropdown = document.getElementById('vendas-alerta-dropdown');
+                var empty = document.getElementById('vendas-alerta-empty');
+                if (!badge || !dropdown || !empty) return;
+
+                var linkWrapper = dropdown.querySelector('li[data-role="vendas-link"]');
+
+                function atualizarBadge(valor) {
+                    var total = Number(valor) || 0;
+                    var texto = total > 99 ? '99+' : (total > 0 ? String(total) : '0');
+                    badge.textContent = texto;
+                    badge.setAttribute('aria-label', texto + ' venda(s) pendente(s) de repasse');
+                }
+
+                atualizarBadge(0);
+
+                fetch('{{ route('financeiro.notificacoes') }}', {
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                }).then(function(resp) {
+                    if (!resp.ok) throw new Error('Falha ao carregar notificações de vendas');
+                    return resp.json();
+                }).then(function(data) {
+                    var count = Number(data && data.total_pendentes) || 0;
+                    var items = Array.isArray(data && data.notificacoes) ? data.notificacoes : [];
+                    var valorTotal = Number(data && data.valor_total_pendente) || 0;
+
+                    atualizarBadge(count);
+
+                    // Remover itens anteriores
+                    dropdown.querySelectorAll('li.vendas-item').forEach(function(li) {
+                        li.remove();
+                    });
+
+                    if (!items.length) {
+                        empty.innerHTML = '<span class="text-muted">Nenhuma venda pendente de repasse.</span>';
+                        empty.style.display = '';
+                        return;
+                    }
+
+                    empty.style.display = 'none';
+
+                    // Remover item de resumo com valor total
+
+                    // Adicionar cada venda pendente
+                    items.forEach(function(item) {
+                        var li = document.createElement('li');
+                        li.className = 'vendas-item waves-effect waves-light';
+
+                        var nome = item && item.nome ? item.nome : '—';
+                        var saldoTotal = Number(item && item.saldo_total) || 0;
+                        var saldoLimpo = Number(item && item.saldo_limpo) || 0;
+                        var saldoSujo = Number(item && item.saldo_sujo) || 0;
+                        var totalVendas = Number(item && item.total_vendas) || 0;
+                        var diasPendente = Number(item && item.dias_pendente) || 0;
+
+                        var urgenciaClass = '';
+                        var urgenciaIcon = 'ti-money';
+                        var urgenciaColor = 'bg-c-green';
+
+                        if (diasPendente > 7) {
+                            urgenciaClass = 'text-danger';
+                            urgenciaIcon = 'ti-alert';
+                            urgenciaColor = 'bg-c-red';
+                        } else if (diasPendente > 3) {
+                            urgenciaClass = 'text-warning';
+                            urgenciaIcon = 'ti-time';
+                            urgenciaColor = 'bg-c-yellow';
+                        }
+
+                        var badgeTexto = '';
+                        if (diasPendente > 0) {
+                            badgeTexto = '<span class="badge badge-secondary notification-metric">' +
+                                diasPendente + 'd</span>';
+                        }
+
+                        li.innerHTML =
+                            '<div class="media">' +
+                            '<div class="media-left align-self-center mr-2">' +
+                            '<i class="' + urgenciaIcon + ' ' + urgenciaColor +
+                            '" style="color:#fff;padding:8px;border-radius:50%;font-size:12px;"></i>' +
+                            badgeTexto +
+                            '</div>' +
+                            '<div class="media-body">' +
+                            '<h5 class="notification-user mb-0 ' + urgenciaClass + '">' + nome +
+                            '</h5>' +
+                            '<small class="text-muted d-block">' + totalVendas + ' venda(s) • ' +
+                            saldoLimpo.toLocaleString('pt-BR') + ' limpo + ' +
+                            saldoSujo.toLocaleString('pt-BR') + ' sujo</small>' +
+                            '<span class="notification-time">Total: <strong>' + saldoTotal
+                            .toLocaleString('pt-BR') + '</strong></span>' +
+                            '</div>' +
+                            '</div>';
+
+                        if (linkWrapper) {
+                            dropdown.insertBefore(li, linkWrapper);
+                        } else {
+                            dropdown.appendChild(li);
+                        }
+                    });
+
+                }).catch(function(error) {
+                    console.error('Erro ao carregar notificações de vendas:', error);
+                    empty.innerHTML =
+                        '<span class="text-muted">Não foi possível carregar as informações.</span>';
+                    empty.style.display = '';
+                });
+
+                // Atualizar a cada 5 minutos
+                setInterval(function() {
+                    window.location.reload();
+                }, 300000);
+            });
+        </script>
+    @endonce
+@endcan
+
+@can('acesso', 'venda.fila.index')
+    @once
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                var badge = document.getElementById('vendas-pendentes-badge');
+                var dropdown = document.getElementById('vendas-pendentes-dropdown');
+                var empty = document.getElementById('vendas-pendentes-empty');
+                if (!badge || !dropdown || !empty) return;
+
+                var linkWrapper = dropdown.querySelector('li[data-role="vendas-pendentes-link"]');
+
+                function atualizarBadge(valor) {
+                    var total = Number(valor) || 0;
+                    var texto = total > 99 ? '99+' : (total > 0 ? String(total) : '0');
+                    badge.textContent = texto;
+                    badge.setAttribute('aria-label', texto + ' venda(s) pendente(s) de processamento');
+                }
+
+                atualizarBadge(0);
+
+                fetch('{{ route('venda.fila.notificacoes-pendentes') }}', {
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                }).then(function(resp) {
+                    if (!resp.ok) throw new Error('Falha ao carregar vendas pendentes');
+                    return resp.json();
+                }).then(function(data) {
+                    var count = Number(data && data.total_pendentes) || 0;
+                    var items = Array.isArray(data && data.notificacoes) ? data.notificacoes : [];
+                    var pendente = Number(data && data.pendente) || 0;
+                    var emAtendimento = Number(data && data.em_atendimento) || 0;
+
+                    atualizarBadge(count);
+
+                    // Remover itens anteriores
+                    dropdown.querySelectorAll('li.vendas-pendentes-item').forEach(function(li) {
+                        li.remove();
+                    });
+
+                    if (!items.length) {
+                        empty.innerHTML = '<span class="text-muted">Nenhuma venda pendente no momento.</span>';
+                        empty.style.display = '';
+                        return;
+                    }
+
+                    empty.style.display = 'none';
+
+
+
+                    // Adicionar cada venda pendente
+                    items.forEach(function(item) {
+                        var li = document.createElement('li');
+                        li.className = 'vendas-pendentes-item waves-effect waves-light';
+                        li.style.padding = '8px 15px';
+                        li.style.margin = '0';
+
+                        var cliente = item && item.cliente ? item.cliente : '—';
+                        var organizacao = item && item.organizacao ? item.organizacao : '—';
+                        var statusLabel = item && item.status_label ? item.status_label :
+                        'Desconhecido';
+                        var dataPedido = item && item.data_pedido ? item.data_pedido : '—';
+                        var diasPendente = Number(item && item.dias_pendente) || 0;
+                        var urgencia = item && item.urgencia ? item.urgencia : {
+                            icon: 'ti-shopping-cart',
+                            color: 'bg-c-blue',
+                            class: 'text-primary'
+                        };
+
+                        var badgeTexto = '';
+                        if (diasPendente > 0) {
+                            badgeTexto = '<span class="badge badge-secondary notification-metric">' +
+                                diasPendente + 'd</span>';
+                        }
+
+                        li.innerHTML =
+                            '<div class="media">' +
+                            '<div class="media-left align-self-center mr-2">' +
+                            '<i class="' + urgencia.icon + ' ' + urgencia.color +
+                            '" style="color:#fff;padding:8px;border-radius:50%;font-size:12px;"></i>' +
+                            badgeTexto +
+                            '</div>' +
+                            '<div class="media-body" style="line-height: 1.2;">' +
+                            '<h5 class="notification-user mb-0 ' + urgencia.class +
+                            '" style="font-size: 14px; margin-bottom: 2px !important;">' + cliente +
+                            '</h5>' +
+                            '<span class="notification-time" style="font-size: 11px; color: #999;">Pedido em: ' +
+                            dataPedido + '</span>' +
+                            '</div>' +
+                            '</div>';
+
+                        if (linkWrapper) {
+                            dropdown.insertBefore(li, linkWrapper);
+                        } else {
+                            dropdown.appendChild(li);
+                        }
+                    });
+
+                }).catch(function(error) {
+                    console.error('Erro ao carregar vendas pendentes:', error);
+                    empty.innerHTML =
+                        '<span class="text-muted">Não foi possível carregar as informações.</span>';
+                    empty.style.display = '';
+                });
+
+                // Atualizar a cada 3 minutos (vendas são mais dinâmicas)
+                setInterval(function() {
+                    window.location.reload();
+                }, 180000);
             });
         </script>
     @endonce

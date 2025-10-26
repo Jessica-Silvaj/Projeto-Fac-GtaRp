@@ -87,10 +87,11 @@
                         <tbody>
                             @forelse ($listLancamentos as $idx)
                                 @php
-                                    $fabricacaoAuto = Str::startsWith(
-                                        Str::upper((string) ($idx->observacao ?? '')),
-                                        'FABRICACÃO AUTOMATICA',
-                                    );
+                                    $observacaoBruta = (string) ($idx->observacao ?? '');
+                                    $observacaoMaiuscula = Str::upper($observacaoBruta);
+                                    $observacaoNormalizada = Str::upper(Str::ascii($observacaoMaiuscula));
+                                    $fabricacaoAuto = Str::startsWith($observacaoNormalizada, 'FABRICACAO AUTOMATICA');
+                                    $fabricacaoVendas = Str::startsWith($observacaoNormalizada, 'FABRICACAO|VENDAS');
                                 @endphp
                                 <tr>
                                     <td class="text-left">
@@ -98,7 +99,10 @@
                                     <td class="text-left">
                                         {{ optional($idx->item)->nome }}
                                         @if ($fabricacaoAuto)
-                                            <span class="badge badge-warning ml-1">FABRICACÃO</span>
+                                            <span class="badge badge-warning ml-1 fabricacaoAuto">FABRICACAO</span>
+                                        @endif
+                                        @if ($fabricacaoVendas)
+                                            <span class="badge badge-info ml-1 fabricacaoAuto">VENDAS</span>
                                         @endif
                                     </td>
                                     <td class="text-center">{{ $idx->tipo }}</td>

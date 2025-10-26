@@ -281,3 +281,77 @@ CREATE TABLE IF NOT EXISTS DISCORD_SOLICITACAO (
     CONSTRAINT fk_discord_solicitacao_bau_destino FOREIGN KEY (bau_destino_id) REFERENCES BAUS(id) ON DELETE SET NULL,
     CONSTRAINT fk_discord_solicitacao_usuario FOREIGN KEY (processado_por) REFERENCES USUARIOS(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+CREATE SEQUENCE IF NOT EXISTS seq_ORGANIZACAO INCREMENT BY 1 START WITH 1;
+CREATE TABLE IF NOT EXISTS ORGANIZACAO (
+    id INT AUTO_INCREMENT NOT NULL,
+    nome VARCHAR(255) NOT NULL,
+    ativo TINYINT(1) DEFAULT 1,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Exemplos iniciais
+INSERT INTO ORGANIZACAO (nome, ativo) VALUES
+('CARTEL', 1),
+('BALLAS', 1),
+('HELLS ANGELS', 1),
+('THE LOST', 1),
+('AURA', 1),
+('NEKUTAI', 1),
+('VOID', 1),
+('SOLO', 1),
+('NOX', 1),
+('MIDNIGTH', 1),
+('HOOLINGANS', 1),
+('VERTICE', 1),
+('8 ANJO', 1),
+('VAGOS', 1),
+('NOVA ERA', 1),
+('FAMILIES', 1);
+
+CREATE SEQUENCE IF NOT EXISTS seq_FILA_ESPERA INCREMENT BY 1 START WITH 1;
+CREATE TABLE IF NOT EXISTS FILA_ESPERA (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    organizacao_id INT NULL,
+    nome VARCHAR(255) NOT NULL,
+    data_pedido DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    data_entrega_estimada DATETIME NULL,
+    usuario_id INT NOT NULL,
+    pedido TEXT NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'pendente',
+    dinheiro_limpo DECIMAL(12,2) DEFAULT 0,
+    dinheiro_sujo DECIMAL(12,2) DEFAULT 0,
+    desconto_aplicado TINYINT(1) DEFAULT 0,
+    desconto_valor DECIMAL(12,2) DEFAULT 0,
+    desconto_motivo VARCHAR(255) NULL,
+    pagamento_tipo VARCHAR(10) DEFAULT 'limpo',
+    CONSTRAINT fk_fila_espera_organizacao FOREIGN KEY (organizacao_id) REFERENCES ORGANIZACAO(id) ON DELETE SET NULL,
+    CONSTRAINT fk_fila_espera_usuario FOREIGN KEY (usuario_id) REFERENCES USUARIOS(id) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE SEQUENCE IF NOT EXISTS seq_FILA_ESPERA_ITEM INCREMENT BY 1 START WITH 1;
+CREATE TABLE IF NOT EXISTS FILA_ESPERA_ITEM (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    fila_espera_id INT NOT NULL,
+    produto_id INT NOT NULL,
+    quantidade INT NOT NULL,
+    observacao VARCHAR(255) NULL,
+    tabela_preco VARCHAR(50) DEFAULT 'padrao',
+    preco_unitario_limpo DECIMAL(12,2) DEFAULT 0,
+    preco_unitario_sujo DECIMAL(12,2) DEFAULT 0,
+    CONSTRAINT fk_fila_item_fila FOREIGN KEY (fila_espera_id) REFERENCES FILA_ESPERA(id) ON DELETE CASCADE,
+    CONSTRAINT fk_fila_item_produto FOREIGN KEY (produto_id) REFERENCES PRODUTO(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE SEQUENCE seq_FALTAS INCREMENT BY 1 START WITH 1;
+CREATE TABLE IF NOT EXISTS FALTAS (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    usuario_id INT NOT NULL,
+    data_falta DATE NOT NULL,
+    motivo TEXT NULL,
+    ativo boolean not null default 1,
+    FOREIGN KEY (usuario_id) REFERENCES USUARIOS(id)
+);
+
+

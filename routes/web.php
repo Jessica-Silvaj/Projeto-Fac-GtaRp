@@ -9,6 +9,8 @@ use App\Http\Controllers\FuncaoController;
 use App\Http\Controllers\ItensController;
 use App\Http\Controllers\ProdutoController;
 use App\Http\Controllers\LancamentoController;
+use App\Http\Controllers\FilaVendasController;
+use App\Http\Controllers\OrganizacaoController;
 use App\Http\Controllers\PerfilController;
 use App\Http\Controllers\PermissoesController;
 use App\Http\Controllers\SituacaoController;
@@ -68,6 +70,18 @@ Route::middleware('auth.check')->group(function () {
         Route::delete('/administracao/rh/funcao/delete/{id}', [FuncaoController::class, 'destroy'])->name('administracao.rh.funcao.destroy');
         Route::post("/administracao/rh/funcao/store", [FuncaoController::class, 'store'])->name('administracao.rh.funcao.store');
 
+        // Frequência
+        Route::prefix('administracao/rh/frequencia')->name('administracao.rh.frequencia.')->group(function () {
+            Route::get('index', [App\Http\Controllers\Administracao\RH\FrequenciaController::class, 'index'])->name('index');
+            Route::get('historico', [App\Http\Controllers\Administracao\RH\FrequenciaController::class, 'historico'])->name('historico');
+            Route::get('relatorio-detalhado', [App\Http\Controllers\Administracao\RH\FrequenciaController::class, 'relatorioDetalhado'])->name('relatorio.detalhado');
+            Route::get('relatorio', [App\Http\Controllers\Administracao\RH\FrequenciaController::class, 'relatorio'])->name('relatorio');
+            Route::post('registrar-falta', [App\Http\Controllers\Administracao\RH\FrequenciaController::class, 'registrarFalta'])->name('registrar.falta');
+            Route::post('remover-falta', [App\Http\Controllers\Administracao\RH\FrequenciaController::class, 'removerFalta'])->name('remover.falta');
+        });
+
+        // Permissoes
+
         //  -- ESTOQUE
         //  --- Itens
         Route::get("/administracao/estoque/itens/index", [ItensController::class, 'index'])->name('administracao.estoque.itens.index');
@@ -82,6 +96,13 @@ Route::middleware('auth.check')->group(function () {
             Route::post('store', [ProdutoController::class, 'store'])->name('store');
             Route::delete('delete/{id}', [ProdutoController::class, 'destroy'])->name('destroy');
             Route::get('itens/search', [ProdutoController::class, 'searchItens'])->name('itens.search');
+        });
+
+        Route::prefix('administracao/fabricacao/organizacao')->name('administracao.fabricacao.organizacao.')->group(function () {
+            Route::get('index', [OrganizacaoController::class, 'index'])->name('index');
+            Route::get('edit/{id?}', [OrganizacaoController::class, 'edit'])->name('edit');
+            Route::post('store', [OrganizacaoController::class, 'store'])->name('store');
+            Route::delete('delete/{id}', [OrganizacaoController::class, 'destroy'])->name('destroy');
         });
 
         //  --- Baús
@@ -103,7 +124,7 @@ Route::middleware('auth.check')->group(function () {
     });
 
     // CONTROLE BAU (fora do admin/perm) - tipo painel
-        Route::prefix('bau/lancamentos')->name('bau.lancamentos.')->group(function () {
+    Route::prefix('bau/lancamentos')->name('bau.lancamentos.')->group(function () {
         Route::get('index', [LancamentoController::class, 'index'])->name('index');
         Route::get('edit/{id?}', [LancamentoController::class, 'edit'])->name('edit');
         Route::post('store', [LancamentoController::class, 'store'])->name('store');
@@ -127,8 +148,36 @@ Route::middleware('auth.check')->group(function () {
         Route::get('anomalias', [\App\Http\Controllers\AnomaliaController::class, 'index'])->name('anomalias');
         Route::get('anomalias/navbar', [\App\Http\Controllers\AnomaliaController::class, 'navbar'])->name('anomalias.navbar');
     });
+
+    Route::prefix('venda/fila')->name('venda.fila.')->group(function () {
+        Route::get('historico', [FilaVendasController::class, 'historico'])->name('historico');
+        Route::get('historico/series/diarias', [FilaVendasController::class, 'historicoSeriesDiarias'])->name('historico.series.diarias');
+        Route::get('historico/series/semanais', [FilaVendasController::class, 'historicoSeriesSemanais'])->name('historico.series.semanais');
+        Route::get('historico/series/mensais', [FilaVendasController::class, 'historicoSeriesMensais'])->name('historico.series.mensais');
+        Route::get('historico/ranking/{tipo}', [FilaVendasController::class, 'historicoRanking'])->name('historico.ranking');
+        Route::get('index', [FilaVendasController::class, 'index'])->name('index');
+        Route::get('notificacoes-pendentes', [FilaVendasController::class, 'notificacoesPendentes'])->name('notificacoes-pendentes');
+        Route::get('create', [FilaVendasController::class, 'create'])->name('create');
+        Route::post('store', [FilaVendasController::class, 'store'])->name('store');
+        Route::get('edit/{id}', [FilaVendasController::class, 'edit'])->name('edit');
+        Route::post('update/{id}', [FilaVendasController::class, 'update'])->name('update');
+        Route::get('vender/{id}', [FilaVendasController::class, 'vender'])->name('vender');
+        Route::post('vender/{id}', [FilaVendasController::class, 'processarVenda'])->name('vender.processar');
+        Route::delete('{id}', [FilaVendasController::class, 'destroy'])->name('destroy');
+    });
+
+    // Rotas do Financeiro
+    Route::prefix('financeiro')->name('financeiro.')->group(function () {
+        Route::get('/', [App\Http\Controllers\FinanceiroController::class, 'index'])->name('index');
+        Route::get('dashboard', [App\Http\Controllers\FinanceiroController::class, 'dashboard'])->name('dashboard');
+        Route::get('dashboard/api', [App\Http\Controllers\FinanceiroController::class, 'dashboardApi'])->name('dashboard.api');
+
+        Route::get('relatorio', [App\Http\Controllers\FinanceiroController::class, 'relatorio'])->name('relatorio');
+        Route::get('relatorio/exportar', [App\Http\Controllers\FinanceiroController::class, 'exportarRelatorio'])->name('relatorio.exportar');
+        Route::get('notificacoes', [App\Http\Controllers\FinanceiroController::class, 'notificacoes'])->name('notificacoes');
+        Route::post('repasse/{vendedorId}', [App\Http\Controllers\FinanceiroController::class, 'marcarRepasse'])->name('repasse');
+        Route::delete('repasse/{vendedorId}', [App\Http\Controllers\FinanceiroController::class, 'desfazerRepasse'])->name('desfazer-repasse');
+    });
 });
 
 require __DIR__ . '/auth.php';
-
-

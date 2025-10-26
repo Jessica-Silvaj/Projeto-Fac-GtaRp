@@ -8393,7 +8393,7 @@ table tbody .border-bottom-info td {
     display: block;
     list-style: none;
     margin: 0;
-    padding: 0 0 20px;
+    padding: -2px;
     position: relative;
 }
 
@@ -25299,8 +25299,28 @@ span.value {
     border-bottom: #0FA015 3px solid;
     width: 100%;
 }
-#solicitacao-alerta-wrapper .show-notification { max-height: 18rem; overflow-y: auto; }
-#solicitacao-alerta-wrapper .show-notification::-webkit-scrollbar { width: 6px; }
-#solicitacao-alerta-wrapper .show-notification::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.3); border-radius: 3px; }
-.alerta-item { font-size: 0.85rem; padding: 0.4rem 0.6rem; }
-@media (min-width: 768px) { .alerta-item { font-size: 0.95rem; } }
+
+#solicitacao-alerta-wrapper .show-notification {
+    max-height: 18rem;
+    overflow-y: auto;
+}
+
+#solicitacao-alerta-wrapper .show-notification::-webkit-scrollbar {
+    width: 6px;
+}
+
+#solicitacao-alerta-wrapper .show-notification::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+}
+
+.alerta-item {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.6rem;
+}
+
+@media (min-width: 768px) {
+    .alerta-item {
+        font-size: 0.95rem;
+    }
+}

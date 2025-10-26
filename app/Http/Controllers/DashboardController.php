@@ -7,6 +7,7 @@ use App\Models\DiscordSolicitacao;
 use App\Models\Funcao;
 use App\Models\Itens;
 use App\Models\Lancamento;
+use App\Models\Organizacao;
 use App\Models\Perfil;
 use App\Models\Produto;
 use App\Models\Usuario;
@@ -14,6 +15,8 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
+use App\Models\FilaEspera;
 
 class DashboardController extends Controller
 {
@@ -77,6 +80,14 @@ class DashboardController extends Controller
                 'url' => $canAccess('administracao.estoque.itens.index') ? route('administracao.estoque.itens.index') : null,
             ],
             [
+                'label' => 'Organizações',
+                'value' => \App\Models\Organizacao::where('ativo', 1)->count(),
+                'icon' => 'ti-home',
+                'description' => 'Organizações cadastradas',
+                'color' => 'linear-gradient(135deg,#8b5cf6,#a855f7)',
+                'url' => $canAccess('administracao.fabricacao.organizacao.index') ? route('administracao.fabricacao.organizacao.index') : null,
+            ],
+            [
                 'label' => 'Produtos',
                 'value' => Produto::where('ativo', 1)->count(),
                 'icon' => 'ti-truck',
@@ -129,7 +140,8 @@ class DashboardController extends Controller
             // mantém compatibilidade com possíveis usos antigos
             'hoje' => Lancamento::whereDate('data_atribuicao', Carbon::today())->count(),
             'seteDias' => Lancamento::whereBetween('data_atribuicao', [Carbon::now()->subDays(6)->startOfDay(), Carbon::now()->endOfDay()])->count(),
-            'fabricacao' => Lancamento::where('fabricacao', true)->count(),
+            // Corrigido: usa observacao ao invés de coluna inexistente 'fabricacao'
+            'fabricacao' => Lancamento::where('observacao', 'LIKE', '%FABRICACAO%')->count(),
         ];
 
         // Agora traz os últimos lançamentos também independentemente de permissão
@@ -140,6 +152,37 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
+        // Resumo de vendas (otimizado: queries pontuais)
+        $totalAtivos = FilaEspera::whereIn('status', [FilaEspera::STATUS_PENDENTE, FilaEspera::STATUS_EM_ATENDIMENTO])->count();
+        $concluidosVendas = FilaEspera::where('status', FilaEspera::STATUS_CONCLUIDO)->count();
+        $novosHojeVendas = FilaEspera::whereDate('data_pedido', Carbon::today())->count();
+        $emAtrasoVendas = FilaEspera::whereNotIn('status', [FilaEspera::STATUS_CONCLUIDO, FilaEspera::STATUS_CANCELADO])
+            ->whereNotNull('data_entrega_estimada')
+            ->whereDate('data_entrega_estimada', '<', Carbon::today())
+            ->count();
+
+        $vendasResumo = [
+            'ativos' => (int) $totalAtivos,
+            'atraso' => (int) $emAtrasoVendas,
+            'hoje' => (int) $novosHojeVendas,
+            'concluidos' => (int) $concluidosVendas,
+        ];
+
+        // Pedidos pendentes recentes (limitado e com eager loading)
+        $vendasPendentes = FilaEspera::query()
+            ->with(['organizacao', 'usuario', 'itens.produto'])
+            ->whereIn('status', [FilaEspera::STATUS_PENDENTE, FilaEspera::STATUS_EM_ATENDIMENTO])
+            ->orderByDesc('data_pedido')
+            ->orderByDesc('id')
+            ->limit(7)
+            ->get();
+
+        // Calcular valor total dos pedidos ativos
+        $valorTotalAtivos = FilaEspera::whereIn('status', [FilaEspera::STATUS_PENDENTE, FilaEspera::STATUS_EM_ATENDIMENTO])
+            ->sum(DB::raw('COALESCE(dinheiro_limpo, 0) + COALESCE(dinheiro_sujo, 0)'));
+
+        $vendasResumo['valor_total'] = (float) $valorTotalAtivos;
+
         return view('dashboard.index', [
             'cards' => $cards,
             'solicitacaoStatusLabels' => $solicitacaoStatusLabels,
@@ -147,6 +190,8 @@ class DashboardController extends Controller
             'solicitacoesPendentes' => $solicitacoesPendentes,
             'lancamentoResumo' => $lancamentoResumo,
             'ultimosLancamentos' => $ultimosLancamentos,
+            'vendasResumo' => $vendasResumo,
+            'vendasPendentes' => $vendasPendentes,
         ]);
     }
 }

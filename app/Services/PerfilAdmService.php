@@ -13,14 +13,22 @@ use Illuminate\Support\Str;
 
 class PerfilAdmService implements PerfilAdmServiceInterface
 {
-    public function __construct(private LoggingServiceInterface $logger)
-    {
-    }
+    public function __construct(private LoggingServiceInterface $logger) {}
 
     public function listar(Request $request): LengthAwarePaginator
     {
-        $lista = Perfil::obterPorFiltros($request);
-        return Utils::arrayPaginator($lista, route('administracao.rh.perfil.index'), $request, 10);
+        // Usar paginação nativa do Eloquent para melhor performance
+        $query = Perfil::query()->orderBy('nome');
+
+        if (!empty($request->nome)) {
+            $query->where('nome', 'LIKE', '%' . Str::upper($request->nome) . '%');
+        }
+
+        if ($request->filled('ativo')) {
+            $query->where('ativo', $request->ativo);
+        }
+
+        return $query->paginate(10)->appends($request->query());
     }
 
     public function dadosEdicao(int $id = 0): array
@@ -60,4 +68,3 @@ class PerfilAdmService implements PerfilAdmServiceInterface
         });
     }
 }
-
