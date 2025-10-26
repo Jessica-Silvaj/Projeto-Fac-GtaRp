@@ -191,7 +191,7 @@
                             @endforelse
                         </tbody>
                         <tfoot>
-                            <td colspan="5" class="bg-light">
+                            <td colspan="5">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <span class="text-muted">
                                         <i class="ti-clipboard"></i>
@@ -199,8 +199,9 @@
                                         <strong>{{ method_exists($historico, 'total') ? $historico->total() : $historico->count() }}</strong>
                                     </span>
                                     <span class="text-muted small">
-                                        <i class="ti-calendar"></i>
-                                        Relatório detalhado de frequência
+                                        <i class="ti-info-alt"></i>
+                                        Período: {{ \Carbon\Carbon::parse($dataInicio)->format('d/m/Y') }} a
+                                        {{ \Carbon\Carbon::parse($dataFim)->format('d/m/Y') }}
                                     </span>
                                 </div>
                             </td>

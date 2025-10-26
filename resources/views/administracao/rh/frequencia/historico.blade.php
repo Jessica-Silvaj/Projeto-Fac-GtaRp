@@ -150,7 +150,7 @@
                             @endforelse
                         </tbody>
                         <tfoot>
-                            <td colspan="6" class="bg-light">
+                            <td colspan="6">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <span class="text-muted">
                                         <i class="ti-clipboard"></i>
