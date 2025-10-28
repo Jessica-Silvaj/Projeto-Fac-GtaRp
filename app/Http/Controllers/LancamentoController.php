@@ -22,6 +22,9 @@ class LancamentoController extends Controller
     public function index(Request $request)
     {
         $listLancamentos = $this->service->listar($request);
+        // Fechar conexão MySQL
+        DB::disconnect('mysql');
+
         return view('controleBau.bau.lancamentos.index', compact('listLancamentos'));
     }
 
@@ -51,6 +54,9 @@ class LancamentoController extends Controller
         } catch (\Throwable $e) {
             $this->logger->excecao($e);
             return redirect()->back()->with('error', 'Ocorreu um erro ao salvar o lancamento.');
+        } finally {
+            // Garantir desconexão da base de dados
+            DB::disconnect('mysql');
         }
     }
 
@@ -62,6 +68,8 @@ class LancamentoController extends Controller
         } catch (\Throwable $e) {
             $this->logger->excecao($e);
             return redirect()->back()->with('error', 'Ocorreu um erro ao excluir o lancamento.');
+        } finally {
+            DB::disconnect('mysql');
         }
     }
 
@@ -74,6 +82,9 @@ class LancamentoController extends Controller
         }
 
         $items = $query->orderBy('nome')->limit(20)->get(['id', 'nome']);
+
+        // Fechar conexão MySQL
+        DB::disconnect('mysql');
 
         return response()->json([
             'results' => $items->map(fn($i) => ['id' => $i->id, 'text' => $i->nome]),
@@ -136,6 +147,7 @@ class LancamentoController extends Controller
         $data = $this->service->historico($request);
         $dataset = (string) $request->get('dataset', '');
         if ($dataset === '') {
+            DB::disconnect('mysql');
             return response()->json($data);
         }
 
@@ -151,18 +163,21 @@ class LancamentoController extends Controller
             'detalhado' => $data['detalhes'] ?? [],
         ];
 
+        DB::disconnect('mysql');
         return response()->json($map[$dataset] ?? []);
     }
 
     public function historicoDetalhes(Request $request)
     {
         $det = $this->service->detalhes($request);
+        DB::disconnect('mysql');
         return response()->json($det);
     }
 
     public function estoqueTotal(Request $request)
     {
         $data = $this->service->estoqueTotal($request);
+        DB::disconnect('mysql');
         return view('controleBau.bau.lancamentos.estoque-total', $data);
     }
 

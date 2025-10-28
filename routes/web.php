@@ -166,18 +166,6 @@ Route::middleware('auth.check')->group(function () {
         Route::post('vender/{id}', [FilaVendasController::class, 'processarVenda'])->name('vender.processar');
         Route::delete('{id}', [FilaVendasController::class, 'destroy'])->name('destroy');
     });
-
-    // Rotas do Financeiro
-    Route::prefix('financeiro')->name('financeiro.')->group(function () {
-        Route::get('/', [App\Http\Controllers\FinanceiroController::class, 'index'])->name('index');
-        Route::get('dashboard', [App\Http\Controllers\FinanceiroController::class, 'dashboard'])->name('dashboard');
-        Route::get('dashboard/api', [App\Http\Controllers\FinanceiroController::class, 'dashboardApi'])->name('dashboard.api');
-        Route::get('relatorio', [App\Http\Controllers\FinanceiroController::class, 'relatorio'])->name('relatorio');
-        Route::get('relatorio/exportar', [App\Http\Controllers\FinanceiroController::class, 'exportarRelatorio'])->name('relatorio.exportar');
-        Route::get('notificacoes', [App\Http\Controllers\FinanceiroController::class, 'notificacoes'])->name('notificacoes');
-        Route::post('repasse/{vendedorId}', [App\Http\Controllers\FinanceiroController::class, 'marcarRepasse'])->name('repasse');
-        Route::delete('repasse/{vendedorId}', [App\Http\Controllers\FinanceiroController::class, 'desfazerRepasse'])->name('desfazer-repasse');
-    });
 });
 
 require __DIR__ . '/auth.php';

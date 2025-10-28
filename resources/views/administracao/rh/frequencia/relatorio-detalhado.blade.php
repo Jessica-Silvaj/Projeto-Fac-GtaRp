@@ -172,7 +172,10 @@
                                         {{ $falta->motivo ?? 'Sem motivo especificado' }}
                                     </td>
                                     <td class="text-center col-md-2">
-                                        {{ auth()->user()->nome }}
+                                        <small class="text-muted">
+                                            <i class="ti-user"></i>
+                                            {{ $falta->registrado_por }}
+                                        </small>
                                     </td>
                                     <td class="text-center col-md-1">
                                         <span class="pcoded-badge label label-danger">FALTA</span>

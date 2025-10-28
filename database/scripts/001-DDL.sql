@@ -351,7 +351,10 @@ CREATE TABLE IF NOT EXISTS FALTAS (
     data_falta DATE NOT NULL,
     motivo TEXT NULL,
     ativo boolean not null default 1,
+    registrado_por VARCHAR(255) NULL,
     FOREIGN KEY (usuario_id) REFERENCES USUARIOS(id)
 );
 
 
+ALTER TABLE FILA_ESPERA
+    ADD COLUMN IF NOT EXISTS pagamento_tipo VARCHAR(10) DEFAULT 'limpo',

@@ -16,7 +16,8 @@ class Falta extends Model
         'usuario_id',
         'data_falta',
         'motivo',
-        'ativo'
+        'ativo',
+        'registrado_por'
     ];
 
     protected $casts = [
@@ -59,11 +60,15 @@ class Falta extends Model
 
     public static function registrarFalta($usuarioId, $data, $motivo)
     {
+        $usuarioLogado = auth()->user();
+        $nomeUsuario = $usuarioLogado ? $usuarioLogado->nome : null;
+        session(['nome' => $nomeUsuario]);
         return self::create([
             'usuario_id' => $usuarioId,
             'data_falta' => $data,
             'motivo' => $motivo,
-            'ativo' => 1
+            'ativo' => 1,
+            'registrado_por' => $nomeUsuario
         ]);
     }
 

@@ -121,7 +121,7 @@
                                     <td class="text-center col-md-2">
                                         <small class="text-muted">
                                             <i class="ti-user"></i>
-                                            {{ $falta->registrado_por ?? auth()->user()->nome }}
+                                            {{ $falta->registrado_por }}
                                         </small>
                                     </td>
                                 </tr>

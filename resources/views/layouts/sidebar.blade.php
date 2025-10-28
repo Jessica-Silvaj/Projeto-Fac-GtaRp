@@ -324,7 +324,7 @@
 
         {{-- Seção Vendas --}}
         @php
-            $vendasPerms = ['venda.fila.index', 'venda.fila.create', 'venda.fila.historico', 'financeiro.index'];
+            $vendasPerms = ['venda.fila.index', 'venda.fila.create', 'venda.fila.historico'];
         @endphp
 
         @if (hasAnyAcesso($vendasPerms))
@@ -344,15 +344,6 @@
                         <a href="{{ route('venda.fila.historico') }}" class="waves-effect waves-dark">
                             <span class="pcoded-micon"><i class="ti-bar-chart-alt"></i><b>HV</b></span>
                             <span class="pcoded-mtext">Histórico Vendas</span>
-                            <span class="pcoded-mcaret"></span>
-                        </a>
-                    </li>
-                @endcan
-                @can('acesso', 'financeiro.index')
-                    <li class="{{ isActiveRoute('financeiro.index') }}">
-                        <a href="{{ route('financeiro.index') }}" class="waves-effect waves-dark">
-                            <span class="pcoded-micon"><i class="ti-wallet"></i><b>FI</b></span>
-                            <span class="pcoded-mtext">Financeiro</span>
                             <span class="pcoded-mcaret"></span>
                         </a>
                     </li>

@@ -107,7 +107,7 @@ class FrequenciaController extends Controller
     public function registrarFalta(Request $request)
     {
         $request->validate([
-            'usuario_id' => 'required|exists:usuarios,id',
+            'usuario_id' => 'required|exists:USUARIOS,id',
             'data_falta' => 'required|date|before_or_equal:today',
             'motivo' => 'required|string|min:5|max:500'
         ], [
@@ -179,7 +179,7 @@ class FrequenciaController extends Controller
 
         // Método original por usuario_id e data
         $request->validate([
-            'usuario_id' => 'required|exists:usuarios,id',
+            'usuario_id' => 'required|exists:USUARIOS,id',
             'data_falta' => 'required|date'
         ]);
 
